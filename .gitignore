@@ -1,2 +1,6 @@
 .venv
 test-venv/*
+test-venv
+.tests
+.__pycache__
+.wpilib
