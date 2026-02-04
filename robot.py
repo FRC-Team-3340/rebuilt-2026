@@ -47,6 +47,7 @@ class MyRobot(wpilib.TimedRobot):
         if abs(speed) < 0.1: # don't move if move is slight
             speed = 0
             print('joystick speed too small')
-
-        self.first_motor.set(speed)
+        else:
+            print('joystick speed good enough')
+            self.first_motor.set(speed)
         pass
