@@ -57,7 +57,7 @@ class MyRobot(wpilib.TimedRobot):
 
             talon_srxs[can_ID] = motor
 
-        return neo_dict
+        return talon_srxs
 
     def testPeriodic(self):
         speed = -self.stick.getRawAxis(1)
