@@ -3,7 +3,9 @@
 import wpilib
 import wpilib.drive
 import phoenix6
+import phoenix5 as p5
 import rev
+
 
 class MyRobot(wpilib.TimedRobot):
     def robotInit(self):
@@ -23,8 +25,6 @@ class MyRobot(wpilib.TimedRobot):
         self.stick = wpilib.Joystick(0)
 
         self.first_motor = self.motors[2]
-        
-        pass
 
     def setup_neos(self, can_ids: list):
         """
@@ -34,17 +34,35 @@ class MyRobot(wpilib.TimedRobot):
         neo_dict = {}
 
         for can_id in can_ids:
-            motor = rev.SparkMax(can_id, rev.SparkLowLevel.MotorType.kBrushless)
-            
+            motor = rev.SparkMax(
+                can_id, rev.SparkLowLevel.MotorType.kBrushless)
+
             neo_dict[can_id] = motor
-        
-        print(f"[!] Succesfully init'ed NEOs on CAN IDs: {list(neo_dict.keys())}")
+
+        print(
+            f"[!] Succesfully init'ed NEOs on CAN IDs: {list(neo_dict.keys())}")
+
+        return neo_dict
+
+    def setup_talonsrx(self, can_ID: list):
+        '''
+        Creates dictionary of Talon SRX motor controllers with provided CAN IDs.
+
+        '''
+
+        talon_srxs = {}
+
+        for id in can_ID:
+            motor = p5.TalonSRX(id)
+
+            talon_srxs[can_ID] = motor
+
         return neo_dict
 
     def testPeriodic(self):
         speed = -self.stick.getRawAxis(1)
 
-        if abs(speed) < 0.1: # don't move if move is slight
+        if abs(speed) < 0.1:  # don't move if move is slight
             speed = 0
             print('joystick speed too small')
         else:
