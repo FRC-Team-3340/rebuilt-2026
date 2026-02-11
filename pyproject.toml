@@ -16,4 +16,4 @@ components = [
     #"phoenix6"
 ]
 
-requires = ["robotpy-ctre", "robotpy-rev"]
+requires = ["robotpy-ctre", "robotpy-rev", "limelightlib-python"]
