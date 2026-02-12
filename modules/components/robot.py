@@ -17,14 +17,15 @@ class MyRobot(wpilib.TimedRobot):
         right_trigger = self.joystick.getRawAxis(3)  # Right trigger for motor speed
         Right_x_Axis = self.joystick.getRawAxis(4)  # Right stick X-axis
         Right_y_Axis = self.joystick.getRawAxis(5)  # Right stick Y-axis
-        # --- moving Forward and Backwards ---
-        if Left_Y_Axis > 0.2 or Left_Y_Axis < -0.2: 
-            self.talon1.set(phoenix5.ControlMode.PercentOutput, Left_Y_Axis /10)
-            self.talon2.set(phoenix5.ControlMode.PercentOutput, Left_Y_Axis / 10)
-        if Right_x_Axis < 0.2 and Right_x_Axis > -0.2:
-            self.talon1.set(phoenix5.ControlMode.PercentOutput, 1)
-            self.talon2.set(phoenix5.ControlMode.PercentOutput, 1)
 
+        # --- moving Forward and Backwards ---
+      #  if Left_Y_Axis > 0.2 or Left_Y_Axis < -0.2: 
+       #     self.talon1.set(phoenix5.ControlMode.PercentOutput, Left_Y_Axis /10)
+       #     self.talon2.set(phoenix5.ControlMode.PercentOutput, Left_Y_Axis / 10)
+       # if Right_x_Axis < 0.2 and Right_x_Axis > -0.2:
+       #     self.talon1.set(phoenix5.ControlMode.PercentOutput, 1)
+        #    self.talon2.set(phoenix5.ControlMode.PercentOutput, 1)
+        '''
         if Left_X_Axis > 0.1: # code for intake
             self.talon_.set(phoenix5.ControlMode.PercentOutput, Left_X_Axis)
             self.talon_.set(phoenix5.ControlMode.PercentOutput, Left_X_Axis)
@@ -47,7 +48,7 @@ class MyRobot(wpilib.TimedRobot):
         # Drive control
         #self.drive(Left_Y_Axis, Right_x_Axis)
 
-        
+        '''
 
         self.sparkmax1.set(right_trigger / 10)
         self.talon1.set(phoenix5.ControlMode.PercentOutput, left_trigger / 10)
