@@ -1,10 +1,13 @@
 import wpilib
 import phoenix5
+from phoenix5 import WPI_TalonSRX as SRX
 from wpilib import Joystick
 import rev
 
+
 class MyRobot(wpilib.TimedRobot):
     def robotInit(self):
+        self.talon3 = SRX(4)
         self.talon1 = phoenix5.WPI_TalonSRX(3)
         self.talon2 = phoenix5.WPI_TalonSRX(4)
         self.sparkmax1 = rev.SparkMax(2, rev.SparkLowLevel.MotorType.kBrushless)
@@ -25,13 +28,17 @@ class MyRobot(wpilib.TimedRobot):
        # if Right_x_Axis < 0.2 and Right_x_Axis > -0.2:
        #     self.talon1.set(phoenix5.ControlMode.PercentOutput, 1)
         #    self.talon2.set(phoenix5.ControlMode.PercentOutput, 1)
-        '''
+        '''# forwars
         if Left_X_Axis > 0.1: # code for intake
             self.talon_.set(phoenix5.ControlMode.PercentOutput, Left_X_Axis)
             self.talon_.set(phoenix5.ControlMode.PercentOutput, Left_X_Axis)
+
+#bzackwards
         if Left_Y_Axis > 0.1:
             self.talon_.set(phoenix5.ControlMode.PercentOutput, Left_Y_Axis)
             self.talon_.set(phoenix5.ControlMode.PercentOutput, Left_X_Axis)
+
+
         if left_trigger > 0.1:
             self.talon_.set(phoenix5.ControlMode.PercentOutput, left_trigger)
             

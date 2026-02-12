@@ -1,83 +1,85 @@
-import wpilib
-from modules.config.config import ConfigLoader
-from modules.components.hardware.motor_controllers import TalonMotor, SparkMaxMotor
-from modules.input.joystick_handler import JoystickHandler
-from modules.components.vision.limelight_manager import LimelightManager
+import wpilib as wpi
+from wpilib import Joystick, SmartDashboard, XboxController
+from modules.components.drive import Drive
+#from modules.components.climber import Climber
 
 
-class MyRobot(wpilib.TimedRobot):
+import modules.components.motors as m
+class MyRobot(wpi.TimedRobot):
     def robotInit(self):
-        """This runs once when the robot turns on."""
+        self.drive = Drive()
+        #self.climber = Climber()
+        #self.arm = Arm()
+        self.controller = Joystick(0)
 
-        print("="*50)
-        print("ROBOT STARTING UP")
-        print("="*50)
-        
-        # load settings from config
-        self.config = ConfigLoader.load_config()
-        motors_cfg = self.config.get("motors", {})
-        
-        # set up motors
-        print("[robot] Connecting to motors...")
-        try:
-            # get ids from config
-            left_id = motors_cfg.get("left_id", 3)
-            right_id = motors_cfg.get("right_id", 2)
-            
-            # Create motor controllers
-            self.left_motor = TalonMotor(left_id)
-            self.right_motor = SparkMaxMotor(right_id)
-            print("[robot] Motors connected!")
-            
-        except Exception as e:
-            print(f"[robot] ERROR connecting to motors: {e}")
-            raise  # stop if motors don't work
-        
-        # set up controller
-        self.joystick = JoystickHandler(0)
-        
-        # set up vision
-        self.limelight = LimelightManager()
-        self.limelight.start()
-        
-        print("[robot] Initialization complete!")
-
-    def teleopPeriodic(self):
-        # reads controller triggers (0.0 to 1.0)
-        right_trigger = self.joystick.get_axis("right_trigger")
-        left_trigger = self.joystick.get_axis("left_trigger")
-        x,y = self.joystick.get_stick()
+        self.cs = wpi.cameraserver.CameraServer()
+        self.cs.launch()
 
         
-        # sets motor speeds (divided by 10 to make it gentler, idk if that would work though)
-        self.right_motor.set(right_trigger * 2)
-        #self.left_motor.set(left_trigger / 10)
-        self.left_motor.set(y)
+        # self.mySwitch = LimitSwitch(0)
 
-        if y < 0.1: # remove stick drift
-            self.left_motor.set(0)
+    # def robotPeriodic(self):
 
     def testPeriodic(self):
-        # currently using to test limelight vision as i dont want to merge with teleop or auto just yet
+        pass
+       # self.arm.initializeArm()
+    
+    # Assigning buttons on selected controller to
+    def teleopPeriodic(self):
+        '''forward = (-self.controller.getRawButton(1) + self.controller.getRawButton(2)
+                   )/(.5+(abs(self.controller.getRawAxis(0)) > 0.1))
+        self.robotDrive.arcadeDrive(
+             -self.controller.getLeftY(), -self.controller.getRightX()
+        )
 
+         try:
+            self.robot_drive.arcadeDrive( 
+                xSpeed=forward, zRotation=self.controller.getRawAxis(0))
+        except Exception:
+            raise Exception'''
 
-        # upd camera data
-        self.limelight.update()
+        # if self.mySwitch.get() == False:
+        self.drive.tankDrive(self.controller.getRawAxis(0),
+                                 self.controller.getRawAxis(5))
+
         
-        # fetch latest data
-        data = self.limelight.get_latest()
+            # self.drive.arcadeDrive(self.controller.getRawAxis(1), self.controller.getRawAxis(4))
+#CHECK BINDINGS
+        #self.climber.climb(self.controller.getPOV())
+        # self.arm.manualArmControl(self.controller.getPOV())
         
-        # print data if existing
-        if data is not None:
-            print(f"[vision] Camera sees: {data}")
-        else:
-            print("[vision] No data")
+        roller_direction = -self.controller.getRawAxis(2) + self.controller.getRawAxis(3)
+       # self.arm.activateRollers(roller_direction)
 
-    def disabledInit(self):
-        """This runs once when the robot is disabled."""
-        print("[robot] Disabled - Stopping camera")
-        self.limelight.stop()
+        # if self.controller.getRawButton(1):
+        #     self.arm.extendArm()
+        # if self.controller.getRawButton(4):
+        #     self.arm.retractArm()
 
+    def autonomousInit(self):
+        self.timer = wpi.Timer()
+        self.stage = 1
+        self.timer.start()
 
-if __name__ == "__main__":
-    wpilib.run(MyRobot)
+    def autonomousPeriodic(self):
+        match(self.stage):
+            case 0:
+                if self.timer.get() > 3:
+                    self.stage += 1
+            case 1:
+                # if self.timer.get() < 4:
+                    # self.arm.arm_motor.set(0.025)
+                if self.timer.get() < 8:
+                    # self.arm.arm_motor.set(0)
+                    self.drive.arcadeDrive(xSpeed=-0.2, zRotation=0)
+                else:
+                    self.stage += 1
+            case 2:
+                if self.timer.get() < 11:
+                    self.drive.arcadeDrive(xSpeed=0, zRotation=0)
+                   # self.arm.activateRollers(direction=1)
+                else:
+                    self.stage +=1
+            case 3:
+               # self.arm.activateRollers(0)
+                pass

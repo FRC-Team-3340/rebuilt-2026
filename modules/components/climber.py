@@ -1,4 +1,4 @@
-import components.motors as m
+'''import components.motors as m
 
 class Climber:
     def __init__(self):
@@ -30,8 +30,6 @@ class Climber:
         return self.__isActive__
     
 
-
-    '''
     Create algorithm:
     Over time, make power less, but using the   
 
@@ -44,4 +42,4 @@ class Climber:
     calibrate every second 
 
 
-    '''
+'''

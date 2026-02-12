@@ -2,8 +2,9 @@ from wpilib import MotorControllerGroup
 
 from wpilib.drive import DifferentialDrive
 import wpilib.drive
+from phoenix5 import WPI_TalonSRX as SRX
 
-from modules.components.hardware.motor_controllers import TalonMotor as m
+#from modules.components.hardware.motor_controllers import TalonMotor as m
 
 
 class Drive(DifferentialDrive):
@@ -22,10 +23,10 @@ class Drive(DifferentialDrive):
     INVERT_RIGHT = not(INVERT_LEFT)
 
     def __init__(self):
-        front_left = m.createTalonSRX(0, neutral_mode=m.NeutralMode.Coast)
-        back_left = m.createTalonSRX(1, neutral_mode=m.NeutralMode.Coast)
-        front_right = m.createTalonSRX(2, neutral_mode=m.NeutralMode.Coast)
-        back_right =m.createTalonSRX(3, neutral_mode=m.NeutralMode.Coast)
+        front_left = SRX(0)
+        back_left = SRX(1)
+        front_right = SRX(2)
+        back_right = SRX(3)
 
         # Motors are created like this: Left[0, 1] Right[2,3]
         # Use Phoenix Tuner to change CAN IDs if needed.
