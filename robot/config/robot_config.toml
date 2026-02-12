@@ -1,0 +1,6 @@
+[motors]
+left_id = 3
+right_id = 2
+
+[limelight]
+pipeline = 0
