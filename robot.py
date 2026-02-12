@@ -1,8 +1,8 @@
 import wpilib
-from robot.config.config import ConfigLoader
-from robot.modules.hardware.motor_controllers import TalonMotor, SparkMaxMotor
-from robot.input.joystick_handler import JoystickHandler
-from robot.modules.vision.limelight_manager import LimelightManager
+from modules.config.config import ConfigLoader
+from modules.components.hardware.motor_controllers import TalonMotor, SparkMaxMotor
+from modules.input.joystick_handler import JoystickHandler
+from modules.components.vision.limelight_manager import LimelightManager
 
 
 class MyRobot(wpilib.TimedRobot):
@@ -46,10 +46,16 @@ class MyRobot(wpilib.TimedRobot):
         # reads controller triggers (0.0 to 1.0)
         right_trigger = self.joystick.get_axis("right_trigger")
         left_trigger = self.joystick.get_axis("left_trigger")
+        x,y = self.joystick.get_stick()
+
         
         # sets motor speeds (divided by 10 to make it gentler, idk if that would work though)
-        self.right_motor.set(right_trigger / 10)
-        self.left_motor.set(left_trigger / 10)
+        self.right_motor.set(right_trigger * 2)
+        #self.left_motor.set(left_trigger / 10)
+        self.left_motor.set(y)
+
+        if y < 0.1: # remove stick drift
+            self.left_motor.set(0)
 
     def testPeriodic(self):
         # currently using to test limelight vision as i dont want to merge with teleop or auto just yet
@@ -64,6 +70,8 @@ class MyRobot(wpilib.TimedRobot):
         # print data if existing
         if data is not None:
             print(f"[vision] Camera sees: {data}")
+        else:
+            print("[vision] No data")
 
     def disabledInit(self):
         """This runs once when the robot is disabled."""

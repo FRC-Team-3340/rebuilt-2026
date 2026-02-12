@@ -35,8 +35,10 @@ class JoystickHandler:
         
         # Map friendly names to axis numbers
         axis_numbers = {
-            "right_trigger": 3,
+            "get_x": 0,
+            "get_y": 1,
             "left_trigger": 2,
+            "right_trigger": 3,
         }
         
         axis = axis_numbers.get(name)
@@ -47,3 +49,5 @@ class JoystickHandler:
             return self.joystick.getRawAxis(axis)
         except Exception:
             return 0.0
+    def get_stick(self):
+        return -self.joystick.getX(), -self.joystick.getY()
