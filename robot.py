@@ -3,6 +3,8 @@ from wpilib import Joystick, SmartDashboard, XboxController
 from modules.components.drive import Drive
 #from modules.components.climber import Climber
 
+# for running pathplanner autos
+from pathplannerlib.auto import PathPlannerAuto
 
 import modules.components.motors as m
 class MyRobot(wpi.TimedRobot):
@@ -60,6 +62,11 @@ class MyRobot(wpi.TimedRobot):
         self.timer = wpi.Timer()
         self.stage = 1
         self.timer.start()
+        
+        # This method loads the auto when it is called, however, it is recommended
+        # to first load your paths/autos when code starts, then return the
+        # pre-loaded auto/path
+        return PathPlannerAuto('Example Auto')
 
     def autonomousPeriodic(self):
         match(self.stage):
