@@ -10,25 +10,28 @@ class LimelightManager:
         self.limelight = None
         self.latest_result = None
         self.connected = False
+
+    def connect(self):
+        import limelight 
+        
+        discovered = limelight.discover_limelights(debug=True)
+        print("Disovered: ", discovered)
+        if discovered:
+            address = discovered[0]
+            print(f"[limelight] Found camera at {address}")
+            self.limelight = limelight.Limelight(address)
+            self.connected = True
+        else:
+            print("[limelight] No cameras found")
+            self.connected = False
     
     def start(self):
         """Try to connect to the Limelight camera."""
         try:
-            import limelight
-            import limelightresults
             
             # Find any limelights on the network
-            print("[limelight] Looking for cameras...")
-            discovered = limelight.discover_limelights()
-            
-            if discovered:
-                address = discovered[0]
-                print(f"[limelight] Found camera at {address}")
-                self.limelight = limelight.Limelight(address)
-                self.connected = True
-            else:
-                print("[limelight] No cameras found")
-                self.connected = False
+            while not self.connected:
+                self.connect()
                 
         except Exception as e:
             print(f"[limelight] Could not connect: {e}")
@@ -64,6 +67,7 @@ class LimelightManager:
     
     def stop(self):
         """Disconnect from the camera."""
+        
         print("[limelight] Disconnecting")
         self.limelight = None
         self.connected = False

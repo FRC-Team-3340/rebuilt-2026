@@ -51,3 +51,18 @@ class JoystickHandler:
             return 0.0
     def get_stick(self):
         return -self.joystick.getX(), -self.joystick.getY()
+    
+    def get_tank_inputs(self):
+        """
+        Returns the Y axes for both sticks for Tank Drive.
+        Typically: Left Stick Y = Axis 1, Right Stick Y = Axis 5
+        """
+        if self.joystick is None:
+            return 0.0, 0.0
+        
+        # WPILib axes are often inverted (up is negative), 
+        # so we negate them for intuitive driving.
+        left_y = -self.joystick.getRawAxis(1)
+        right_y = -self.joystick.getRawAxis(5)
+        
+        return left_y, right_y

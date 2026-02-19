@@ -4,3 +4,8 @@ right_id = 2
 
 [limelight]
 pipeline = 0
+
+[drive]
+left = [ 0, 1 ]
+right = [ 2, 3 ]
+

@@ -1,60 +1,55 @@
-from wpilib import MotorControllerGroup
-
 from wpilib.drive import DifferentialDrive
-import wpilib.drive
-from phoenix5 import WPI_TalonSRX as SRX
-
-#from modules.components.hardware.motor_controllers import TalonMotor as m
-
+from modules.components.hardware.motor_controllers import TalonMotor
+from modules.config.config import ConfigLoader
 
 class Drive(DifferentialDrive):
-    ''' Drive class - inherits from Differential Drive. Represents the robot drive train.
-    Class parameters to modify:
-        MAX_POWER - Adjust maximum robot power (0-1, where 1 is full power)
-        INVERT_LEFT - Inverts left drive train (assuming intake region is front)  
-        INVERT_RIGHT - Inverts right drive train (assuming intake region is front)
-
-    # The way the motors are inverted may affect robot direction.
-    # By default, the left train is inverted. At least ONE drive train must be inverted.
-
-    '''
+    """
+    Drive class for True Tank Drive.
+    Uses Leader/Follower mode to replace the deprecated MotorControllerGroup.
+    """
+    
     MAX_POWER = 0.6
     INVERT_LEFT = True  
     INVERT_RIGHT = not(INVERT_LEFT)
+    DEADBAND = 0.05  # Ignore inputs smaller than 5%
 
     def __init__(self):
-        front_left = SRX(0)
-        back_left = SRX(1)
-        front_right = SRX(2)
-        back_right = SRX(3)
-
-        # Motors are created like this: Left[0, 1] Right[2,3]
-        # Use Phoenix Tuner to change CAN IDs if needed.
-
-        # wpilib.MotorControllerGroup is deprecated as of 2024 and will be removed next season.
-        # See if you could use the follow command to replace MotorControllerGroup?
-        # drive_train_motors[0].follow(drive_train_motors[1])
-
-
-        # back_left.follow(front_left)
-        # front_left.setInverted(Drive.INVERT_LEFT)
+        self.config = ConfigLoader.load_config()
+        drive_cfg = self.config.get("drive", {})
         
-        # back_right.follow(front_right)
-        # front_right.setInverted(Drive.INVERT_RIGHT)
+        left_ids = drive_cfg.get("left", [0, 1])
+        right_ids = drive_cfg.get("right", [2, 3])
 
-        left_train = MotorControllerGroup(
-            front_left, back_left)
-        left_train.setInverted(Drive.INVERT_LEFT)
+        print(f"[drive] Initializing Tank Drive: Left{left_ids}, Right{right_ids}")
 
-        right_train = MotorControllerGroup(
-            front_right, back_right)
-        right_train.setInverted(Drive.INVERT_RIGHT)
-
+        # The first ID in the list is the Leader
+        self.left_leader = TalonMotor(left_ids[0]).talon
+        for can_id in left_ids[1:]:
+            follower = TalonMotor(can_id).talon
+            follower.follow(self.left_leader)
         
+        self.right_leader = TalonMotor(right_ids[0]).talon
+        for can_id in right_ids[1:]:
+            follower = TalonMotor(can_id).talon
+            follower.follow(self.right_leader)
 
-        # Since this class inherits DifferentialDrive, we all super().__init__ to
-        # initialize parent class and create a reference for the robot.
-        super().__init__(leftMotor=left_train, rightMotor=right_train)
-        # super().__init__(leftMotor=front_left, rightMotor=front_right)
+        self.left_leader.setInverted(Drive.INVERT_LEFT)
+        self.right_leader.setInverted(Drive.INVERT_RIGHT)
 
-        self.setMaxOutput(maxOutput=Drive.MAX_POWER)
+        super().__init__(self.left_leader, self.right_leader)
+        
+        self.setMaxOutput(Drive.MAX_POWER)
+        self.setDeadband(self.DEADBAND)
+
+    def apply_tank(self, left_y, right_y):
+        """
+        Applies Tank Drive logic. 
+        Left stick controls left motors, right stick controls right motors.
+        """
+        # DifferentialDrive.tankDrive includes its own squaredInputs option 
+        # (default True) which makes fine movements easier.
+        self.tankDrive(left_y, right_y, squaredInputs=True)
+
+    def stop_robot(self):
+        """Emergency stop for the drivetrain."""
+        self.stopMotor()

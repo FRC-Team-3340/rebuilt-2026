@@ -1,7 +1,7 @@
 from pathplannerlib.auto import AutoBuilder, PathPlannerAuto
 from pathplannerlib.controller import PPLTVController
 from pathplannerlib.config import RobotConfig
-from wpilib import DriverStation
+from wpilib import DriverStation, DifferentialDrive
 
 class Drive(DifferentialDrive):
     def __init__(self):
