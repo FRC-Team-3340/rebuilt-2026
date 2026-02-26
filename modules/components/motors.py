@@ -1,4 +1,4 @@
-from phoenix5 import NeutralMode, WPI_TalonSRX, WPI_VictorSPX, IMotorController
+from phoenix5 import NeutralMode, WPI_TalonSRX, WPI_VictorSPX #, IMotorController
 from rev import SparkMax, SparkLowLevel
 
 

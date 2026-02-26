@@ -1,11 +1,7 @@
-[motors]
-left_id = 3
-right_id = 2
-
 [limelight]
 pipeline = 0
 
 [drive]
-left = [ 0, 1 ]
-right = [ 2, 3 ]
+left = [ 3, 4 ]
+right = [ 1, 2 ]
 

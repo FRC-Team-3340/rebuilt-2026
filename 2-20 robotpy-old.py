@@ -1,8 +1,12 @@
 import wpilib as wpi
+import ctre
 from wpilib import Joystick, SmartDashboard, XboxController
 from modules.components.drive import Drive
 #from modules.components.climber import Climber
-
+import phoenix5
+from phoenix5 import WPI_TalonSRX as SRX
+from wpilib import Joystick
+import rev
 
 import modules.components.motors as m
 class MyRobot(wpi.TimedRobot):
@@ -56,30 +60,4 @@ class MyRobot(wpi.TimedRobot):
         # if self.controller.getRawButton(4):
         #     self.arm.retractArm()
 
-    def autonomousInit(self):
-        self.timer = wpi.Timer()
-        self.stage = 1
-        self.timer.start()
-
-    def autonomousPeriodic(self):
-        match(self.stage):
-            case 0:
-                if self.timer.get() > 3:
-                    self.stage += 1
-            case 1:
-                # if self.timer.get() < 4:
-                    # self.arm.arm_motor.set(0.025)
-                if self.timer.get() < 8:
-                    # self.arm.arm_motor.set(0)
-                    self.drive.arcadeDrive(xSpeed=-0.2, zRotation=0)
-                else:
-                    self.stage += 1
-            case 2:
-                if self.timer.get() < 11:
-                    self.drive.arcadeDrive(xSpeed=0, zRotation=0)
-                   # self.arm.activateRollers(direction=1)
-                else:
-                    self.stage +=1
-            case 3:
-               # self.arm.activateRollers(0)
-                pass
+    

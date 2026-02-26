@@ -1,9 +1,4 @@
-"""
-Simple Limelight camera wrapper.
-Call update() regularly to get fresh data from the camera.
-Call get_latest() to "see" what the camera sees.
-"""
-
+import wpilib
 
 class LimelightManager:
     def __init__(self):
@@ -12,62 +7,39 @@ class LimelightManager:
         self.connected = False
 
     def connect(self):
-        import limelight 
-        
-        discovered = limelight.discover_limelights(debug=True)
-        print("Disovered: ", discovered)
-        if discovered:
-            address = discovered[0]
-            print(f"[limelight] Found camera at {address}")
-            self.limelight = limelight.Limelight(address)
+        # DO NOT REMOVE THIS - It must be the very first thing
+        if wpilib.RobotBase.isSimulation():
+            return
+
+        # Move the import INSIDE the if-statement so it never loads during tests
+        try:
+            import limelight 
+            self.limelight = limelight.Limelight("10.33.40.11")
             self.connected = True
-        else:
-            print("[limelight] No cameras found")
+        except Exception as e:
+            print(f"[limelight] Connection failed: {e}")
             self.connected = False
     
     def start(self):
-        """Try to connect to the Limelight camera."""
-        try:
-            
-            # Find any limelights on the network
-            while not self.connected:
-                self.connect()
-                
-        except Exception as e:
-            print(f"[limelight] Could not connect: {e}")
-            self.connected = False
+        if not self.connected:
+            self.connect()
     
     def update(self):
-        """Get fresh data from the camera."""
-        if not self.connected or self.limelight is None:
+        # If we are in simulation, exit immediately before importing limelightresults
+        if wpilib.RobotBase.isSimulation() or not self.connected:
             return
         
         try:
             import limelightresults
-            
-            # Get the latest data from the camera
             raw_result = self.limelight.get_latest_results()
-            
-            # Parse it into something useful
-            parsed = limelightresults.parse_results(raw_result)
-            
-            # Save it so get_latest() can return it
-            self.latest_result = parsed
-            
+            if raw_result:
+                self.latest_result = limelightresults.parse_results(raw_result)
         except Exception as e:
-            print(f"[limelight] Error getting data: {e}")
+            pass # Avoid spamming the console
     
     def get_latest(self):
-        """Get the most recent camera data.
-        
-        Returns:
-            The latest parsed result, or None if no data yet
-        """
         return self.latest_result
     
     def stop(self):
-        """Disconnect from the camera."""
-        
-        print("[limelight] Disconnecting")
-        self.limelight = None
         self.connected = False
+        self.limelight = None

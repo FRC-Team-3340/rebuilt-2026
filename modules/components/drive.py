@@ -17,8 +17,8 @@ class Drive(DifferentialDrive):
         self.config = ConfigLoader.load_config()
         drive_cfg = self.config.get("drive", {})
         
-        left_ids = drive_cfg.get("left", [0, 1])
-        right_ids = drive_cfg.get("right", [2, 3])
+        left_ids = drive_cfg.get("left", [3, 4])
+        right_ids = drive_cfg.get("right", [1, 2])
 
         print(f"[drive] Initializing Tank Drive: Left{left_ids}, Right{right_ids}")
 
@@ -48,7 +48,7 @@ class Drive(DifferentialDrive):
         """
         # DifferentialDrive.tankDrive includes its own squaredInputs option 
         # (default True) which makes fine movements easier.
-        self.tankDrive(left_y, right_y, squaredInputs=True)
+        self.tankDrive(left_y, right_y, squareInputs=True)
 
     def stop_robot(self):
         """Emergency stop for the drivetrain."""
