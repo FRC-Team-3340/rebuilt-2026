@@ -1,19 +1,16 @@
 import wpilib as wpi
 from wpilib import Joystick, SmartDashboard, XboxController
 from modules.components.drive import Drive
-#from modules.components.climber import Climber
-import phoenix5
-from phoenix5 import WPI_TalonSRX as SRX
-from wpilib import Joystick
-import rev
 
-import modules.components.motors as m
+
+import components.motors as m
+
 class MyRobot(wpi.TimedRobot):
     def robotInit(self):
         self.drive = Drive()
-        #self.climber = Climber()
-        #self.arm = Arm()
-        self.controller = Joystick(0)
+        self.climber = Climber()
+        self.arm = Arm()
+        self.controller = XboxController(0)
 
         self.cs = wpi.cameraserver.CameraServer()
         self.cs.launch()
@@ -24,8 +21,7 @@ class MyRobot(wpi.TimedRobot):
     # def robotPeriodic(self):
 
     def testPeriodic(self):
-        pass
-       # self.arm.initializeArm()
+        self.arm.initializeArm()
     
     # Assigning buttons on selected controller to
     def teleopPeriodic(self):
@@ -48,15 +44,59 @@ class MyRobot(wpi.TimedRobot):
         
             # self.drive.arcadeDrive(self.controller.getRawAxis(1), self.controller.getRawAxis(4))
 #CHECK BINDINGS
-        #self.climber.climb(self.controller.getPOV())
+        self.climber.climb(self.controller.getPOV())
         # self.arm.manualArmControl(self.controller.getPOV())
         
         roller_direction = -self.controller.getRawAxis(2) + self.controller.getRawAxis(3)
-       # self.arm.activateRollers(roller_direction)
+        self.arm.activateRollers(roller_direction)
 
         # if self.controller.getRawButton(1):
         #     self.arm.extendArm()
         # if self.controller.getRawButton(4):
         #     self.arm.retractArm()
 
-    
+    def autonomousInit(self):
+        self.timer = wpi.Timer()
+        self.stage = 1
+        self.timer.start()
+
+    def autonomousPeriodic(self):
+        match(self.stage):
+            case 0:
+                if self.timer.get() > 3:
+                    self.stage += 1
+            case 1:
+                # if self.timer.get() < 4:
+                    # self.arm.arm_motor.set(0.025)
+                if self.timer.get() < 8:
+                    # self.arm.arm_motor.set(0)
+                    self.drive.arcadeDrive(xSpeed=-0.2, zRotation=0)
+                else:
+                    self.stage += 1
+            case 2:
+                if self.timer.get() < 11:
+                    self.drive.arcadeDrive(xSpeed=0, zRotation=0)
+                    self.arm.activateRollers(direction=1)
+                else:
+                    self.stage +=1
+            case 3:
+                self.arm.activateRollers(0)
+
+
+import wpilib
+import phoenix5
+
+class MyRobot(wpilib.TimedRobot):
+    def robotInit(self):
+        # Example for a Talon SRX
+        self.motor = phoenix5.TalonSRX(1)
+        
+    def teleopPeriodic(self):
+        # Set motor to 50% speed
+        self.motor.set(phoenix5.ControlMode.PercentOutput, 0.5)
+
+if __name__ == "__main__":
+    wpilib.run(MyRobot)
+
+
+
