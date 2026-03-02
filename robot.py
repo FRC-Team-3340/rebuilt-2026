@@ -1,95 +1,102 @@
 import wpilib
-import wpilib.interfaces
-_ = wpilib.interfaces.MotorController 
-
-from modules.config.config import ConfigLoader
-from modules.components.hardware.motor_controllers import TalonMotor, SparkMaxMotor
-from modules.input.joystick_handler import JoystickHandler
-from modules.components.vision.limelight_manager import LimelightManager
-from modules.components.drive import Drive
+import phoenix5
+from wpilib import Joystick
+import rev
 
 class MyRobot(wpilib.TimedRobot):
     def robotInit(self):
-        """This runs once when the robot turns on."""
+        # Drivetrain
+        self.talon1 = phoenix5.WPI_TalonSRX(1)
+        self.talon2 = phoenix5.WPI_TalonSRX(2)
+        self.talon3 = phoenix5.WPI_TalonSRX(3)
+        self.talon4 = phoenix5.WPI_TalonSRX(4)
 
-        print("="*50)
-        print("ROBOT STARTING UP")
-        print("="*50)
-        
-        # load settings from config
-        self.config = ConfigLoader.load_config()
-        
-        # set up motors
-        print("[robot] Setting up drive...")
+        # Intake + Shooter
+        self.talon5 = phoenix5.WPI_TalonSRX(5)  # intake
+        self.talon6 = phoenix5.WPI_TalonSRX(6)  # shooter
 
-        try:
-            self.drive = Drive()
-            
-        except Exception as e:
-            print(f"[robot] ERROR connecting to motors: {e}")
-            raise  # stop if motors don't work
-        
-        # set up controller
-        try:
-            self.joystick = JoystickHandler(0)
-        except Exception as e:
-            print(f"[robot] ERROR connecting Joystick: {e}")
-        # set up vision
-        self.limelight = LimelightManager()
-        if not wpilib.RobotBase.isSimulation():
-            self.limelight.start()
-        else:
-            print("[robot] Skipping Limelight socket start for Simulation/Test")
-        print("[robot] Initialization complete!")
+        # Sparks (wrist, feeder, whatever you want)
+        self.spark1 = rev.SparkMax(7, rev.SparkLowLevel.MotorType.kBrushless)
+        self.spark2 = rev.SparkMax(8, rev.SparkLowLevel.MotorType.kBrushless)
+
+        self.joystick = Joystick(0)
+
+        # Timer for delayed intake
+        self.intake_timer = wpilib.Timer()
+        self.intake_delay_active = False
 
     def teleopPeriodic(self):
-        # drive logic
-        left_y, right_y = self.joystick.get_tank_inputs()
-        self.drive.apply_tank(left_y, right_y)
+        lx = self.joystick.getRawAxis(0)
+        ly = self.joystick.getRawAxis(1)
+        lt = self.joystick.getRawAxis(2)
+        rt = self.joystick.getRawAxis(3)
+        rx = self.joystick.getRawAxis(4)
+        ry = self.joystick.getRawAxis(5)
+        lb = self.joystick.getRawButton(4)
+        rb = self.joystick.getRawButton(5)
 
-    def autonomousInit(self):
-        self.timer = None #wpilib.Timer()
-        self.stage = 1
-        #self.timer.start()
+        def db(x, d=0.15):
+            return x if abs(x) > d else 0
 
-    def autonomousPeriodic(self):
-        # upd camera data
-        self.limelight.update()
-        data = self.limelight.get_latest()
+        def scale(x):
+            return x * 0.1
+
+        # Drivetrain power
+        left_power = scale(db(ly))
+        right_power = scale(db(ry))
+
+        # Shooter + intake
+        shooter_power = 0
+        intake_power = 0
+
+        # SHOOTER TRIGGER
+        if rt > 0.2:
+            shooter_power = 0.9
+
+            # Start the 1 second delay ONCE
+            if not self.intake_delay_active:
+                self.intake_delay_active = True
+                self.intake_timer.reset()
+                self.intake_timer.start()
+
+        # After 1 second, start intake
+        if self.intake_delay_active and self.intake_timer.hasElapsed(0.5):
+            intake_power = 0.9
+
+        # If shooter is released, stop everything
+        if rt <= 0.2:
+            shooter_power = 0
+            intake_power = 0
+            self.intake_delay_active = False
+            self.intake_timer.stop()
+
+        # DRIVETRAIN
+        self.talon1.set(phoenix5.ControlMode.PercentOutput, right_power)
+        self.talon2.set(phoenix5.ControlMode.PercentOutput, right_power)
+        self.talon3.set(phoenix5.ControlMode.PercentOutput, -left_power)
+        self.talon4.set(phoenix5.ControlMode.PercentOutput, -left_power)
+
+        # INTAKE + SHOOTER
+        self.talon5.setInverted(True)
         
-        # print data if existing
-        if data is not None:
-            print(f"[vision] Camera sees: {data}")
-        else:
-            print("[vision] Can't see anything boohoo")
+        if lt > 0.2:
+            intake_power =  -0.7
+            shooter_power = 0.7
+        self.talon5.set(phoenix5.ControlMode.PercentOutput, intake_power)
+        self.talon6.set(phoenix5.ControlMode.PercentOutput, shooter_power)
 
-        """match(self.stage):
-            case 0:
-                if self.timer.get() > 3:
-                    self.stage += 1
-            case 1:
-                # if self.timer.get() < 4:
-                    # self.arm.arm_motor.set(0.025)
-                if self.timer.get() < 8:
-                    # self.arm.arm_motor.set(0)
-                    self.drive.arcadeDrive(xSpeed=-0.2, zRotation=0)
-                else:
-                    self.stage += 1
-            case 2:
-                if self.timer.get() < 11:
-                    self.drive.arcadeDrive(xSpeed=0, zRotation=0)
-                   # self.arm.activateRollers(direction=1)
-                else:
-                    self.stage +=1
-            case 3:
-               # self.arm.activateRollers(0)
-                pass"""
+        # SPARKS
+        if lb >=0.2:
+            self.spark1.set(lb/10)
+            self.spark2.set(-lb/10)
 
-    def disabledInit(self):
-        """This runs once when the robot is disabled."""
-        print("[robot] Disabled - Stopping camera")
-        print(self.limelight)
-        self.limelight.stop()
+        if rb >=0.2:
+            self.spark1.set(-lb/10)
+            self.spark2.set(lb/10)
+
+        print(f"AXES: 0={lx:.2f} 1={ly:.2f} 2={lt:.2f} 3={rt:.2f} 4={rx:.2f} 5={ry:.2f}")
+
+        print()
 
 
 if __name__ == "__main__":
