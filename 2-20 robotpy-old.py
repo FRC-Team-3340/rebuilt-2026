@@ -1,5 +1,4 @@
 import wpilib as wpi
-import ctre
 from wpilib import Joystick, SmartDashboard, XboxController
 from modules.components.drive import Drive
 #from modules.components.climber import Climber
