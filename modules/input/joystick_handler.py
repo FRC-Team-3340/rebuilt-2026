@@ -66,3 +66,22 @@ class JoystickHandler:
         right_y = -self.joystick.getRawAxis(5)
         
         return left_y, right_y
+    def get_button(self, name):
+        name = name.upper()
+
+        if self.joystick is None:
+            raise Exception("No joystick connected")
+        
+        button_numbers = {
+            "A": 1,
+            "B": 2,
+            "X": 3,
+            "Y": 4,
+            "LB": 5,
+            "RB": 6
+        }
+        button = button_numbers.get(name)
+        if button is None:
+            raise Exception(f"Unknown button name: {name}")
+        
+        return self.joystick.getRawButton(button)

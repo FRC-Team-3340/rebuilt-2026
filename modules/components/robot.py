@@ -1,3 +1,11 @@
+import wpilib
+import wpilib.interfaces
+#_ = wpilib.interfaces.MotorController 
+
+#from modules.config.config import ConfigLoader
+#from modules.input.joystick_handler import JoystickHandler
+#from modules.components.vision.limelight_manager import LimelightManager
+###from modules.components.drive import Drive
 from wpilib.drive import DifferentialDrive
 from phoenix5 import WPI_TalonSRX
 from phoenix5 import NeutralMode
@@ -25,3 +33,20 @@ class Drive:
 
     def stop_robot(self):
         self.drive.stopMotor()
+
+        
+class MyRobot(wpilib.TimedRobot):
+    def robotInit(self):
+        self.drive = Drive()
+    def teleopPeriodic(self):
+        self.drive.apply_tank(0.4, 0.4)
+    def autonomousInit(self):
+        pass
+    def autonomousPeriodic(self):
+        pass
+    def disabledInit(self):
+       pass
+
+
+if __name__ == "__main__":
+    wpilib.run(MyRobot)
