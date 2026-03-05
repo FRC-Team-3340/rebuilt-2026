@@ -1,122 +1,187 @@
+#LEHANSA, dR. MICHAEL 2-27-2026 6PM
+
+
 import wpilib
-import phoenix5
+import wpilib.interfaces
+_ = wpilib.interfaces.MotorController 
+
+from modules.config.config import ConfigLoader
+from modules.components.hardware.motor_controllers import TalonMotor, SparkMaxMotor
+from modules.input.joystick_handler import JoystickHandler
+from modules.components.vision.limelight_manager import LimelightManager
+from modules.components.drive import Drive
 from wpilib import Joystick
-import rev
-from pathplannerlib.auto import AutoBuilder
-from pathplannerlib.controller import PPLTVController
-from pathplannerlib.config import RobotConfig
 
 class MyRobot(wpilib.TimedRobot):
+    def robotPeriodic(self):
+        pass
+
+    def disabledPeriodic(self):
+        pass
     def robotInit(self):
-        # Drivetrain
-        #left side
-        self.talon1 = phoenix5.WPI_TalonSRX(1)
-        self.talon2 = phoenix5.WPI_TalonSRX(2)
-        #right side
-        self.talon3 = phoenix5.WPI_TalonSRX(3)
-        self.talon4 = phoenix5.WPI_TalonSRX(4)
+        self.timer = wpilib.Timer()
+        self.stage = 0
+        self.timer.start()
+        """This runs once when the robot turns on."""
+        
+        print("="*50)
+        print("ROBOT STARTING UP")
+        print("="*50)
+        
+        # load settings from config
+        self.config = ConfigLoader.load_config()
+        self.firstDelay = False
 
+        # set up motors
+        print("[robot] Setting up drive...")
 
-        # Intake + Shooter
-        self.talon5 = phoenix5.WPI_TalonSRX(5)  # intake
-        self.talon6 = phoenix5.WPI_TalonSRX(6)  # shooter
+        try:
+            self.drive = Drive()
+            
+        except Exception as e:
+            print(f"[robot] ERROR connecting to motors: {e}")
+            raise  # stop if motors don't work
+        
+        # set up controller
+        try:
+            self.joystick = JoystickHandler()
+        except Exception as e:
+            print(f"[robot] ERROR connecting Joystick: {e}")
+        # set up vision
+        self.limelight = LimelightManager()
+        self.limelight.start()
 
-        # Sparks, Climbers
-        self.spark1 = rev.SparkMax(7, rev.SparkLowLevel.MotorType.kBrushless)
-        self.spark2 = rev.SparkMax(8, rev.SparkLowLevel.MotorType.kBrushless)
-        #Gets joystick 0 in driver station
-        self.joystick = Joystick(0)
+        # intake shoot rotation logic
+        try:
+            self.intake_motor = TalonMotor(6)
+            self.outtake_motor = TalonMotor(5)
+        except Exception as e:
+            print(f"[robot] ERROR connecting intake motor")
+
     
-        # Timer for delayed intake
-        self.intake_timer = wpilib.Timer()
-        self.intake_delay_active = False
+        print("[robot] Initialization complete!")
 
     def teleopPeriodic(self):
+    # Dr. Michael 3/2/2026 9:57am
+        left_y, right_y = self.joystick.get_tank_inputs()
+        self.intake_axis = self.joystick.get_axis("right_trigger")
+        self.outake_axis = self.joystick.get_axis("left_trigger")
+        self.ybutton = self.joystick.get_button("y")
 
-        # gets raw axis for the joysticks and trigers
-        leftxaxis = self.joystick.getRawAxis(0)
-        leftyaxis = self.joystick.getRawAxis(1)
-        lefttrigger = self.joystick.getRawAxis(2)
-        righttrigger = self.joystick.getRawAxis(3)
-        rightxaxis = self.joystick.getRawAxis(4)
-        rightyaxis = self.joystick.getRawAxis(5)
-        # gets raw axis for the buttons
-        leftbutton = self.joystick.getRawButton(5)
-        rightbutton = self.joystick.getRawButton(6)
+    # DRIVE
+        self.drive.apply_tank(-left_y, -right_y)
 
-        def db(x, d=0.15):
-            return x if abs(x) > d else 0
+    # CLIMB
+                
+    # INTAKE
+        if self.outake_axis > 0.1:
+            self.intake_motor.set(self.outake_axis/2)
+            self.outtake_motor.set(self.outake_axis/2)
+            self.timer.stop()
+            self.timer.reset()
 
-        # sets the limit of the drive train
-        def scale(x):
-            return x * 0.1
+    # PASSING
+        elif self.ybutton:
+            print(self.ybutton)
+            # self.intake_motor.set(-0.22)
+            # self.outtake_motor.set(-0.2)
 
-        # Drivetrain power
-        left_power = scale(db(leftyaxis))
-        right_power = scale(db(rightyaxis))
 
-        # Shooter + intake
-        shooter_power = 0
-        intake_power = 0
+    # SHOOT
+        elif self.intake_axis > 0.1:
+            self.intake_motor.set(self.intake_axis/2)
 
-        # SHOOTER TRIGGER
-        if righttrigger > 0.2:
-            shooter_power = 0.25
+            if self.timer.get() == 0:
+                self.timer.reset()
+                self.timer.start()
 
-            # Start the 1 second delay
-            if not self.intake_delay_active:
-                self.intake_delay_active = True
-                self.intake_timer.reset()
-                self.intake_timer.start()
+            if self.timer.get() >= 3.0:
+                self.outtake_motor.set(-self.intake_axis/2)
+            else:
+                self.outtake_motor.set(0)
 
-        # After 1 second, start intake
-        if self.intake_delay_active and self.intake_timer.hasElapsed(0.5):
-            intake_power = 0.25
-
-        # If shooter is released, stop
-        if righttrigger <= 0.2:
-            shooter_power = 0
-            intake_power = 0
-            self.intake_delay_active = False
-            self.intake_timer.stop()
-
-        # DRIVETRAIN
-        self.talon1.set(phoenix5.ControlMode.PercentOutput, right_power)
-        self.talon2.set(phoenix5.ControlMode.PercentOutput, right_power)
-        self.talon3.set(phoenix5.ControlMode.PercentOutput, -left_power)
-        self.talon4.set(phoenix5.ControlMode.PercentOutput, -left_power)
-
-        # INTAKE + SHOOTER
-        self.talon5.setInverted(True)
-        
-        if lefttrigger > 0.2:
-            intake_power =  -0.25
-            shooter_power = 0.25
-        
-        self.talon5.set(phoenix5.ControlMode.PercentOutput, intake_power)
-        self.talon6.set(phoenix5.ControlMode.PercentOutput, shooter_power)
-
-        # Climber
-        if leftbutton >=0.2:
-            # goes down
-            self.spark1.set(leftbutton/5)
-            self.spark2.set(-leftbutton/5)
-
-        elif rightbutton >=0.2:
-            # goes up
-            self.spark1.set(-rightbutton/5)
-            self.spark2.set(rightbutton/5)
-
+    #RESTING STATE
         else:
-            # stops from climing infinitly
-            self.spark1.set(0)
-            self.spark2.set(0)
+            self.intake_motor.set(0)
+            self.outtake_motor.set(0)
+            self.timer.stop()
+            self.timer.reset()
+
+# except:
+#     print(f"[robot] Caught exception at motor intake {e}")
+     
+            
 
     def autonomousInit(self):
-        pass
+        #self.timer = None #wpilib.Timer()
+        #self.timer.start()
+        self.timer = wpilib.Timer()
+        self.stage = 1
+        self.timer.start()
+        self.limelight = LimelightManager()
+        self.limelight.start()
+    
 
     def autonomousPeriodic(self):
-        pass
+        # upd camera data
+        self.limelight.update()
+        data = self.limelight.get_latest()
+        # print data if existing
+        if data is not None:
+            print(f"[vision] Camera sees: {data}")
+
+        # match(self.stage):
+        #     case 0:
+        #         if self.timer.get() > 3:
+        #             self.stage += 1
+        #     case 1:
+        #         # if self.timer.get() < 4:
+        #             # self.arm.arm_motor.set(0.025)
+        #         if self.timer.get() < 8:
+        #             # self.arm.arm_motor.set(0)
+        #             self.drive.arcadeDrive(xSpeed=-0.2, zRotation=0)
+        #         else:
+        #             self.stage += 1
+        #     case 2:
+        #         if self.timer.get() < 11:
+        #             self.drive.arcadeDrive(xSpeed=0, zRotation=0)
+        #            # self.arm.activateRollers(direction=1)
+        #         else:
+        #             self.stage +=1
+        #     case 3:
+        #        # self.arm.activateRollers(0)
+        #         pass
+
+    def disabledInit(self):
+        print("[robot] Disabled - Stopping camera")
+        # Only stop if we aren't in simulation, or if it was actually started
+        self.limelight.stop()
+        """This runs once when the robot is disabled.
+        print("[robot] Disabled - Stopping camera")
+        print(self.limelight)
+        self.limelight.stop()
+        def disabledInit(self):"""
 
 if __name__ == "__main__":
-    wpilib.run(MyRobot)
+    import robotpy
+    robotpy.main()
+"""if __name__ == "__main__":
+    wpilib.run(MyRobot)"""
+
+
+
+
+
+
+
+"""
+            if self.intake_motor.get() == 1 and not self.firstDelay: # quarter of a full rotation
+                self.outtake_motor.set(-self.intake_axis)
+                self.firstDelay = True
+            else:
+                if self.firstDelay and self.outtake_motor.get() < 0.25: # imitate release
+                    self.outtake_motor.set(0)
+                    self.firstDelay = False
+              
+        except Exception as e:
+            print(f"[robot] Caught exception at motor intake {e}")"""

@@ -1,4 +1,5 @@
 import wpilib
+import limelightresults
 
 class LimelightManager:
     def __init__(self):
@@ -8,8 +9,6 @@ class LimelightManager:
 
     def connect(self):
         # DO NOT REMOVE THIS - It must be the very first thing
-        if wpilib.RobotBase.isSimulation():
-            return
 
         # Move the import INSIDE the if-statement so it never loads during tests
         try:
@@ -26,16 +25,16 @@ class LimelightManager:
     
     def update(self):
         # If we are in simulation, exit immediately before importing limelightresults
-        if wpilib.RobotBase.isSimulation() or not self.connected:
-            return
-        
+        if not self.connected or self.limelight is None:
+            return Exception("Limelight not connected")
         try:
-            import limelightresults
             raw_result = self.limelight.get_latest_results()
+            print(f"[limelight] Raw results: {raw_result}")
             if raw_result:
                 self.latest_result = limelightresults.parse_results(raw_result)
+                print(f"[limelight] Parsed results: {self.latest_result}")
         except Exception as e:
-            pass # Avoid spamming the console
+            print(f"[limelight] Error parsing results: {e}")
     
     def get_latest(self):
         return self.latest_result

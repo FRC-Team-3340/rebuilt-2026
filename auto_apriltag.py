@@ -1,7 +1,7 @@
 import wpilib
 import phoenix5
 from ntcore import NetworkTableInstance
-
+from modules.components.vision.limelight_manager import LimelightManager
 #What this auto does: Drives forward off starting line, Searches for AprilTag, Aligns using Limelight Vision Camera tx, Drives to target using ta distance, Fires shooter
 #NEED TO ADD THIS TO MAIN ROBOTPY BEFORE USE: 
 """from auto_apriltag import AprilTagAuto
@@ -38,8 +38,10 @@ class AprilTagAuto:
         self.shooter = shooter
 
         # limelight network tables
-        self.nt = NetworkTableInstance.getDefault()
-        self.limelight = self.nt.getTable("limelight")
+        self.limelight = LimelightManager()
+        self.limelight.start()
+        # self.nt = NetworkTableInstance.getDefault()
+        # self.limelight = self.nt.getTable("limelight")
 
         # auto state machine
         self.state = 0
@@ -52,6 +54,7 @@ class AprilTagAuto:
         self.state = 0
         self.timer.reset()
         self.timer.start()
+        
 
     def stopDrive(self):
 
@@ -70,12 +73,16 @@ class AprilTagAuto:
     def periodic(self):
 
         # Limelight values
-        tv = self.limelight.getNumber("tv", 0)   # target valid
-        tx = self.limelight.getNumber("tx", 0)   # horizontal offset
-        ta = self.limelight.getNumber("ta", 0)   # target area (distance)
+        # tv = self.limelight.getNumber("tv", 0)   # target valid
+        # tx = self.limelight.getNumber("tx", 0)   # horizontal offset
+        # ta = self.limelight.getNumber("ta", 0)   # target area (distance)
+        self.limelight.update()
+        data = self.limelight.get_latest()
 
+        if data is not None:
+            print(f"[vision] Camera sees: {data}")
 
-        # STATE 0: Leave starting zone
+        """# STATE 0: Leave starting zone
         # -----------------------------
         if self.state == 0:
 
@@ -144,5 +151,6 @@ class AprilTagAuto:
         # STATE 5: Finished
         # -----------------------------
         elif self.state == 5:
-
+            self.limelight.stop()
             self.stopDrive()
+"""
