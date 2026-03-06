@@ -1,45 +1,35 @@
-'''import components.motors as m
+import rev
 
 class Climber:
-    def __init__(self):
-        self.__power__ = 0.5
-
-        assert self.__power__ <= 1
-
-        self.climber_motor = m.createSparkMax(
-            can_id= 6,
-            motor_type= m.SparkLowLevel.MotorType.kBrushless
-        )
-
-        self.__isActive__ = False
+    def __init__(self, can_id_1, can_id_2):
+        # Initialize motors
+        self.spark1 = rev.SparkMax(can_id_1, rev.SparkLowLevel.MotorType.kBrushless)
+        self.spark2 = rev.SparkMax(can_id_2, rev.SparkLowLevel.MotorType.kBrushless)
         
-    def climb(self, dpad):
-        # USING THE DPAD
-        if (dpad == 0):
-            direction = 1
-        elif (dpad == 180):
-            direction = -1
+        # Set to Brake Mode so the robot doesn't slide down as easily
+        self.spark1.IdleMode(rev.SparkMax.IdleMode.kBrake)
+        self.spark2.IdleMode(rev.SparkMax.IdleMode.kBrake)
+
+        # Speed constant (1/5 = 0.2)
+        self.climb_speed = 0.2
+
+    def update(self, left_button, right_button):
+        """
+        Call this in teleopPeriodic. 
+        left_button: boolean (True/False)
+        right_button: boolean (True/False)
+        """
+        if left_button:
+            # Move Down
+            self.spark1.set(self.climb_speed)
+            self.spark2.set(-self.climb_speed)
+
+        elif right_button:
+            # Move Up
+            self.spark1.set(-self.climb_speed)
+            self.spark2.set(self.climb_speed)
+
         else:
-            direction = 0
-
-        self.__isActive__ = True if abs(self.climber_motor.getBusVoltage()) > 0 else False
-        
-        self.climber_motor.set(direction * self.__power__)
-
-    def getActive(self) -> bool:
-        return self.__isActive__
-    
-
-    Create algorithm:
-    Over time, make power less, but using the   
-
-    counteract 
-
-    if power cut to climber after climbing, motor turns in reverse
-    
-    70lbs to kg*9.8m/s =
-    if encoder value = -, we need to turn the motor forward (+) 
-    calibrate every second 
-
-
-'''
+            # Stop motors
+            self.spark1.set(0)
+            self.spark2.set(0)

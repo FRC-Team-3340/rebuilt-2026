@@ -9,6 +9,9 @@ from auto_apriltag import AprilTagAuto
 
 class MyRobot(wpilib.TimedRobot):
     def robotInit(self):
+        self.timer = wpilib.Timer()
+        self.stage = 0
+        self.timer.start()
         # Drivetrain
         #left side
         self.talon1 = phoenix5.WPI_TalonSRX(1)
@@ -52,6 +55,7 @@ class MyRobot(wpilib.TimedRobot):
         # gets raw axis for the buttons
         leftbutton = self.joystick.getRawButton(5)
         rightbutton = self.joystick.getRawButton(6)
+        pov = self.joystick.getPOV()
 
         def db(x, d=0.15):
             return x if abs(x) > d else 0
@@ -99,27 +103,36 @@ class MyRobot(wpilib.TimedRobot):
         self.talon5.setInverted(True)
         
         if lefttrigger > 0.2:
-            intake_power =  -0.25
-            shooter_power = 0.25
+            intake_power =  -0.80
+            shooter_power = 0.80
         
         self.talon5.set(phoenix5.ControlMode.PercentOutput, intake_power)
         self.talon6.set(phoenix5.ControlMode.PercentOutput, shooter_power)
 
         # Climber
-        if leftbutton >=0.2:
-            # goes down
-            self.spark1.set(leftbutton/5)
-            self.spark2.set(-leftbutton/5)
+        def teleopPeriodic(self):
+    # ... your existing joystick axis code ...
 
-        elif rightbutton >=0.2:
-            # goes up
-            self.spark1.set(-rightbutton/5)
-            self.spark2.set(rightbutton/5)
+    # Get the POV value (usually index 0 for the first D-pad)
 
-        else:
-            # stops from climing infinitly
-            self.spark1.set(0)
-            self.spark2.set(0)
+        # Climber Logic using POV
+            if pov == 0:  # TOP button pressed
+                # goes up (adjust signs as needed for your physical robot)
+                self.spark1.set(-0.4)
+                self.spark2.set(0.4)
+
+            elif pov == 180:  # BOTTOM button pressed
+                # goes down
+                self.spark1.set(0.4)
+                self.spark2.set(-0.4)
+
+            else:
+                # Stop motors if POV is not Up or Down (includes pov == -1)
+                self.spark1.set(0)
+                self.spark2.set(0)
+    
+    
+   
 
     def autonomousInit(self):
         self.auto.autoInit()

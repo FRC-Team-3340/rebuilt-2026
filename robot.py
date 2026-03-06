@@ -8,8 +8,12 @@ _ = wpilib.interfaces.MotorController
 from modules.config.config import ConfigLoader
 from modules.components.hardware.motor_controllers import TalonMotor, SparkMaxMotor
 from modules.input.joystick_handler import JoystickHandler
+#from wpilib import Joystick
+
 from modules.components.vision.limelight_manager import LimelightManager
 from modules.components.drive import Drive
+from modules.components.climber import Climber
+
 from wpilib import Joystick
 
 class MyRobot(wpilib.TimedRobot):
@@ -19,6 +23,7 @@ class MyRobot(wpilib.TimedRobot):
     def disabledPeriodic(self):
         pass
     def robotInit(self):
+
         self.timer = wpilib.Timer()
         self.stage = 0
         self.timer.start()
@@ -50,14 +55,21 @@ class MyRobot(wpilib.TimedRobot):
         # set up vision
         self.limelight = LimelightManager()
         self.limelight.start()
-
+        
         # intake shoot rotation logic
         try:
             self.intake_motor = TalonMotor(6)
             self.outtake_motor = TalonMotor(5)
         except Exception as e:
             print(f"[robot] ERROR connecting intake motor")
-
+        
+        try:
+            self.climber = Climber(7,8)
+            
+        except Exception as e:
+            print(f"[robot] ERROR connecting to climber motors: {e}")
+            raise  # stop if motors don't work
+        
     
         print("[robot] Initialization complete!")
 
@@ -68,15 +80,29 @@ class MyRobot(wpilib.TimedRobot):
         self.outake_axis = self.joystick.get_axis("left_trigger")
         self.ybutton = self.joystick.get_button("y")
 
+
+    
+        # gets raw axis for the buttons
+        #self.leftbutton = self.joystick.get_button(5)
+       # self.rightbutton = self.joystick.get_button(6)
+       # self.pov = self.joystick.getPOV()
+
+
+        #self.pov = self.joystick.getPOV()
+        #self.leftbutton = self.joystick.get_button("left_bumper")
+        #self.rightbutton = self.joystick.get_button("right_bumper")
+       # self.left_btn = self.joystick.get_button(5)
+        #self.right_btn = self.joystick.get_button(6)
     # DRIVE
         self.drive.apply_tank(-left_y, -right_y)
 
     # CLIMB
-                
-    # INTAKE
+     #   self.climber.update(self.leftbutton, self.rightbutton)
+
+ # INTAKE
         if self.outake_axis > 0.1:
-            self.intake_motor.set(self.outake_axis/2)
-            self.outtake_motor.set(self.outake_axis/2)
+            self.intake_motor.set(self.outake_axis)
+            self.outtake_motor.set(self.outake_axis)
             self.timer.stop()
             self.timer.reset()
 
@@ -89,14 +115,14 @@ class MyRobot(wpilib.TimedRobot):
 
     # SHOOT
         elif self.intake_axis > 0.1:
-            self.intake_motor.set(self.intake_axis/2)
+            self.intake_motor.set(self.intake_axis*0.5)
 
             if self.timer.get() == 0:
                 self.timer.reset()
                 self.timer.start()
 
             if self.timer.get() >= 3.0:
-                self.outtake_motor.set(-self.intake_axis/2)
+                self.outtake_motor.set(-self.intake_axis*0.5)
             else:
                 self.outtake_motor.set(0)
 
