@@ -80,8 +80,28 @@ class JoystickHandler:
             "LB": 5,
             "RB": 6
         }
+
+        if name not in button_numbers:
+            raise Exception(f"Unknown button name: {name}")
+
         button = button_numbers.get(name)
         if button is None:
             raise Exception(f"Unknown button name: {name}")
         
         return self.joystick.getRawButton(button)
+    
+    def get_dpad(self, val):
+        if self.joystick is None:
+            raise Exception("No joystick connected")
+        
+        dpad_angles = {
+            "up": 0,
+            "right": 90,
+            "down": 180,
+            "left": 270
+        }
+
+        if not val in dpad_angles:
+            raise Exception(f"Unknown angle: {val}")
+        
+        return self.joystick.getPOV() == dpad_angles[val]

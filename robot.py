@@ -79,8 +79,6 @@ class MyRobot(wpilib.TimedRobot):
         self.intake_axis = self.joystick.get_axis("right_trigger")
         self.outake_axis = self.joystick.get_axis("left_trigger")
         self.ybutton = self.joystick.get_button("y")
-
-
     
         # gets raw axis for the buttons
         #self.leftbutton = self.joystick.get_button(5)
@@ -115,14 +113,14 @@ class MyRobot(wpilib.TimedRobot):
 
     # SHOOT
         elif self.intake_axis > 0.1:
-            self.intake_motor.set(self.intake_axis*0.5)
+            self.intake_motor.set(self.intake_axis*0.9)
 
             if self.timer.get() == 0:
                 self.timer.reset()
                 self.timer.start()
 
             if self.timer.get() >= 3.0:
-                self.outtake_motor.set(-self.intake_axis*0.5)
+                self.outtake_motor.set(-self.intake_axis*0.7)
             else:
                 self.outtake_motor.set(0)
 
@@ -135,8 +133,6 @@ class MyRobot(wpilib.TimedRobot):
 
 # except:
 #     print(f"[robot] Caught exception at motor intake {e}")
-     
-            
 
     def autonomousInit(self):
         #self.timer = None #wpilib.Timer()
@@ -146,7 +142,6 @@ class MyRobot(wpilib.TimedRobot):
         self.timer.start()
         self.limelight = LimelightManager()
         self.limelight.start()
-    
 
     def autonomousPeriodic(self):
         # upd camera data
