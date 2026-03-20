@@ -3,6 +3,8 @@ import phoenix5
 from wpilib import Joystick
 import rev
 
+from modules.components.autonomous import AprilTagAuto
+
 class MyRobot(wpilib.TimedRobot):
     def robotInit(self):
         # Drivetrain
@@ -28,6 +30,16 @@ class MyRobot(wpilib.TimedRobot):
         self.intake_timer = wpilib.Timer()
         self.intake_delay_active = False
 
+        # init auto
+        self.auto = AprilTagAuto(
+            self.talon1,
+            self.talon2,
+            self.talon3,
+            self.talon4,
+            self.talon5,
+            self.talon6
+        )
+        
     def teleopPeriodic(self):
 
         # gets raw axis for the joysticks and trigers
@@ -117,6 +129,11 @@ class MyRobot(wpilib.TimedRobot):
         self.talon3.set(phoenix5.ControlMode.PercentOutput, -left_power)
         self.talon4.set(phoenix5.ControlMode.PercentOutput, -left_power)
 
+    def autonomousInit(self):
+        self.auto.autoInit()
+
+    def autonomousPeriodic(self):
+        self.auto.periodic()
 
 if __name__ == "__main__":
     wpilib.run(MyRobot)

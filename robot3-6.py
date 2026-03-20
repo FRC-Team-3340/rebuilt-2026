@@ -5,7 +5,7 @@ import rev
 """from pathplannerlib.auto import AutoBuilder
 from pathplannerlib.controller import PPLTVController
 from pathplannerlib.config import RobotConfig"""
-from auto_apriltag import AprilTagAuto
+from modules.components.autonomous import AprilTagAuto
 
 class MyRobot(wpilib.TimedRobot):
     def robotInit(self):

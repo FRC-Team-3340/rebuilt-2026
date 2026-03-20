@@ -4,23 +4,23 @@ from ntcore import NetworkTableInstance
 from modules.components.vision.limelight_manager import LimelightManager
 #What this auto does: Drives forward off starting line, Searches for AprilTag, Aligns using Limelight Vision Camera tx, Drives to target using ta distance, Fires shooter
 #NEED TO ADD THIS TO MAIN ROBOTPY BEFORE USE: 
-"""from auto_apriltag import AprilTagAuto
-self.auto = AprilTagAuto(
-    self.talon1,
-    self.talon2,
-    self.talon3,
-    self.talon4,
-    self.talon5,
-    self.talon6
-)
+# """from auto_apriltag import AprilTagAuto
+# self.auto = AprilTagAuto(
+#     self.talon1,
+#     self.talon2,
+#     self.talon3,
+#     self.talon4,
+#     self.talon5,
+#     self.talon6
+# )
 
-def autonomousInit(self):
-    self.auto.autoInit()
+# def autonomousInit(self):
+#     self.auto.autoInit()
 
-def autonomousPeriodic(self):
-    self.auto.periodic()
+# def autonomousPeriodic(self):
+#     self.auto.periodic()
 
-"""
+# """
 
 
 class AprilTagAuto:
