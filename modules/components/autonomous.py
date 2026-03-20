@@ -82,7 +82,7 @@ class AprilTagAuto:
         if data is not None:
             print(f"[vision] Camera sees: {data}")
 
-        """# STATE 0: Leave starting zone
+        # STATE 0: Leave starting zone
         # -----------------------------
         if self.state == 0:
 
@@ -97,7 +97,7 @@ class AprilTagAuto:
         # -----------------------------
         elif self.state == 1:
 
-            if tv == 1:
+            if data and data.target_valid:
                 self.state = 2
             else:
                 # rotate slowly to search
@@ -153,4 +153,3 @@ class AprilTagAuto:
         elif self.state == 5:
             self.limelight.stop()
             self.stopDrive()
-"""

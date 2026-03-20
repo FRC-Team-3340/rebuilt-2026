@@ -30,6 +30,13 @@ class MyRobot(wpilib.TimedRobot):
         self.intake_timer = wpilib.Timer()
         self.intake_delay_active = False
 
+        # Climber settings
+        self.climber1_timer = wpilib.Timer()
+        self.climber2_timer = wpilib.Timer()
+        self.climb_time = 5 # seconds for climber to go down
+        self.climb1_difference = 0
+        self.climb2_difference = 0
+
         # init auto
         self.auto = AprilTagAuto(
             self.talon1,
@@ -78,6 +85,7 @@ class MyRobot(wpilib.TimedRobot):
                 self.intake_delay_active = True
                 self.intake_timer.reset()
                 self.intake_timer.start()
+                
 
         # After 1 second, start intake
         if self.intake_delay_active and self.intake_timer.hasElapsed(1):
@@ -100,26 +108,25 @@ class MyRobot(wpilib.TimedRobot):
             intake_power =  0
             shooter_power = 0
 
-        if a_button: # used for kicking the ball out of intake if it gets stuck
+        if a_button: # kicks the ball out of intake if it gets stuck
             intake_power =  0.65
             shooter_power = -0.65
 
         self.talon5.set(phoenix5.ControlMode.PercentOutput, intake_power)
         self.talon6.set(phoenix5.ControlMode.PercentOutput, shooter_power)
-
-        # Climber
-        if leftbutton >=0.2:
+        print(leftbutton, rightbutton)
+        
+        # CLIMBER
+        if leftbutton: 
             # goes down
-            self.spark1.set(leftbutton/5)
-            self.spark2.set(-leftbutton/5)
-
-        elif rightbutton >=0.2:
+            self.spark1.set(0.5)
+            self.spark2.set(-0.5)
+        elif rightbutton:
             # goes up
-            self.spark1.set(-rightbutton/5)
-            self.spark2.set(rightbutton/5)
-
+            self.spark1.set(-0.5)
+            self.spark2.set(0.5)
         else:
-            # stops from climing infinitly
+            # stops from climbing infinitely
             self.spark1.set(0)
             self.spark2.set(0)
 

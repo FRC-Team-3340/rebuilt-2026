@@ -41,4 +41,4 @@ class LimelightManager:
     
     def stop(self):
         self.connected = False
-        self.limelight = None
+        #self.limelight = None

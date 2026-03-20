@@ -41,14 +41,17 @@ class Drive:
                 Rotation2d.fromDegrees(botPose[5])
             )
     
-    # Fall back to odometry pose if Limelight has no target
-    return self.odometry.getPose()
+        # Fall back to odometry pose if Limelight has no target
+        return self.odometry.getPose()
+    
     def resetPose(self, pose: Pose2d):
-        self.pose_estimator.resetPosition(
-        self.getGyroRotation(),
-        self.getModulePositions(),  # or wheel positions for tank drive
-        pose
-    )
+
+        self.pose_estimator.resetPosition
+        (
+            self.getGyroRotation(),
+            self.getModulePositions(),  # or wheel positions for tank drive
+            pose
+        )
 
     def getRobotRelativeSpeeds(self) -> ChassisSpeeds:
         current_pose = self.getPose()
