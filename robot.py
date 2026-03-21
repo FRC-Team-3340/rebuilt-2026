@@ -38,6 +38,23 @@ class MyRobot(wpilib.TimedRobot):
         self.climb1_difference = 0
         self.climb2_difference = 0
 
+        self.climber1_encoder = self.spark1.getEncoder()
+        self.climber2_encoder = self.spark2.getEncoder()
+        
+        self.climber1_encoder.setPosition(0)
+        self.climber2_encoder.setPosition(0)
+        
+        self.spark1.enableSoftLimit(rev.SoftLimitDirection.kForward, True)
+        self.spark1.enableSoftLimit(rev.SoftLimitDirection.kReverse, True)
+        self.spark2.enableSoftLimit(rev.SoftLimitDirection.kForward, True)
+        self.spark2.enableSoftLimit(rev.SoftLimitDirection.kReverse, True)
+        
+        self.spark1.setSoftLimit(rev.SoftLimitDirection.kForward, 80)
+        self.spark1.setSoftLimit(rev.SoftLimitDirection.kReverse, 0)
+        self.spark2.setSoftLimit(rev.SoftLimitDirection.kForward, 80)
+        self.spark2.setSoftLimit(rev.SoftLimitDirection.kReverse, 0)
+
+
         # init auto
         self.auto = AprilTagAuto(
             self.talon1,
@@ -120,20 +137,24 @@ class MyRobot(wpilib.TimedRobot):
         print(leftbutton, rightbutton)
         
         # CLIMBER
-        if x_button: 
-            # goes down
+        if x_button:
+            self.spark1.setIdleMode(rev.SparkMax.IdleMode.kCoast)
+            self.spark2.setIdleMode(rev.SparkMax.IdleMode.kCoast)
             self.spark1.set(0.5)
             self.spark2.set(-0.5)
+        
         elif b_button:
-            # goes up
+            self.spark1.setIdleMode(rev.SparkMax.IdleMode.kCoast)
+            self.spark2.setIdleMode(rev.SparkMax.IdleMode.kCoast)
             self.spark1.set(-0.5)
             self.spark2.set(0.5)
+        
         else:
-            # stops from climbing infinitely
-            self.spark1.IdleMode(rev.SparkBaseConfig.IdleMode.kBrake)
-            self.spark1.IdleMode(rev.SparkBaseConfig.IdleMode.kBrake)
+            self.spark1.setIdleMode(rev.SparkMax.IdleMode.kBrake)
+            self.spark2.setIdleMode(rev.SparkMax.IdleMode.kBrake)
             self.spark1.set(0)
             self.spark2.set(0)
+    
 
         # DRIVETRAIN
         self.talon1.set(phoenix5.ControlMode.PercentOutput, right_power)
