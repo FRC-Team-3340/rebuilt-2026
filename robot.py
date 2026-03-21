@@ -2,7 +2,6 @@ import wpilib
 import phoenix5
 from wpilib import Joystick, SmartDashboard
 import rev
-from modules.components.autonomous import AprilTagAuto
 
 class MyRobot(wpilib.TimedRobot):
     def robotInit(self):
@@ -68,25 +67,18 @@ class MyRobot(wpilib.TimedRobot):
         self.climber2_encoder.setPosition(0)
 
         # init auto
-        self.auto = AprilTagAuto(
-            self.talon1,
-            self.talon2,
-            self.talon3,
-            self.talon4,
-            self.talon5,
-            self.talon6
-        )
 
         SmartDashboard.putNumber("Shooter Speed", 0.8)
         SmartDashboard.putNumber("Intake Speed", 0.9)
         SmartDashboard.putNumber("Reverse Intake Speed", 0.65)
         SmartDashboard.putNumber("Reverse Intake Shooter Speed", -0.65)
+
+        self.intake_speed = SmartDashboard.getNumber("Intake Speed", 0.9)
+        self.shooter_speed = SmartDashboard.getNumber("Shooter Speed", 0.8)
+        self.reverse_intake_speed = SmartDashboard.getNumber("Reverse Intake Speed", 0.65)
+        self.reverse_intake_shooter_speed = SmartDashboard.getNumber("Reverse Intake Shooter Speed", -0.65)
     
     def teleopPeriodic(self):
-        intake_speed = SmartDashboard.getNumber("Intake Speed", 0.9)
-        shooter_speed = SmartDashboard.getNumber("Shooter Speed", 0.8)
-        reverse_intake_speed = SmartDashboard.getNumber("Reverse Intake Speed", 0.65)
-        reverse_intake_shooter_speed = SmartDashboard.getNumber("Reverse Intake Shooter Speed", -0.65)
 
         # gets raw axis for the joysticks and trigers
         leftxaxis = self.joystick.getRawAxis(0)
@@ -119,7 +111,7 @@ class MyRobot(wpilib.TimedRobot):
 
         # SHOOTER TRIGGER
         if righttrigger > 0.2:
-            shooter_power = shooter_speed
+            shooter_power = self.shooter_speed
 
             # Start the 1 second delay
             if not self.intake_delay_active:
@@ -130,7 +122,7 @@ class MyRobot(wpilib.TimedRobot):
 
         # After 1 second, start intake
         if self.intake_delay_active and self.intake_timer.hasElapsed(1):
-            intake_power = intake_speed
+            intake_power = self.intake_speed
 
         # If shooter is released, stop
         if righttrigger <= 0.2:
@@ -142,8 +134,8 @@ class MyRobot(wpilib.TimedRobot):
         # INTAKE + SHOOTER
         
         if lefttrigger > 0.2:
-            intake_power =  reverse_intake_speed
-            shooter_power = reverse_intake_shooter_speed
+            intake_power =  self.reverse_intake_speed
+            shooter_power = self.reverse_intake_shooter_speed
         if lefttrigger < 0.2 and righttrigger < 0.2:
             intake_power =  0
             shooter_power = 0
@@ -153,14 +145,12 @@ class MyRobot(wpilib.TimedRobot):
             shooter_power = -0.65
 
         self.talon5.set(phoenix5.ControlMode.PercentOutput, intake_power)
-        self.talon6.set(phoenix5.ControlMode.PercentOutput, shooter_power)
-        print(leftbutton, rightbutton)
-        
+        self.talon6.set(phoenix5.ControlMode.PercentOutput, shooter_power)        
         
         # CLIMBER
         if x_button:
-            self.spark1.setIdleMode(rev.SparkMax.IdleMode.kCoast)
-            self.spark2.setIdleMode(rev.SparkMax.IdleMode.kCoast)
+            self.spark1.IdleMode(rev.SparkMax.IdleMode.kCoast)
+            self.spark2.IdleMode(rev.SparkMax.IdleMode.kCoast)
             
             if self.climber1_encoder.getPosition() >= self.TARGET_HEIGHT: # do we need only one? One acting as the leader and the other following?
                 self.spark1.set(0)
@@ -173,8 +163,8 @@ class MyRobot(wpilib.TimedRobot):
                 self.spark2.set(0.5)
         
         elif b_button:
-            self.spark1.setIdleMode(rev.SparkMax.IdleMode.kCoast)
-            self.spark2.setIdleMode(rev.SparkMax.IdleMode.kCoast)
+            self.spark1.IdleMode(rev.SparkMax.IdleMode.kCoast)
+            self.spark2.idleMode(rev.SparkMax.IdleMode.kCoast)
             
             if self.climber1_encoder.getPosition() >= self.TARGET_ROTATIONS: # do we need only one? One acting as the leader and the other following?
                 self.spark1.set(0)
@@ -188,8 +178,8 @@ class MyRobot(wpilib.TimedRobot):
 
         
         else:
-            self.spark1.setIdleMode(rev.SparkMax.IdleMode.kBrake)
-            self.spark2.setIdleMode(rev.SparkMax.IdleMode.kBrake)
+            self.spark1.IdleMode(rev.SparkMax.IdleMode.kBrake)
+            self.spark2.IdleMode(rev.SparkMax.IdleMode.kBrake)
             self.spark1.set(0)
             self.spark2.set(0)
     
@@ -202,7 +192,6 @@ class MyRobot(wpilib.TimedRobot):
 
     def autonomousInit(self):
         """Drives forward at 50% for 2 seconds."""
-        self.auto.init()
         self.auto_timer = wpilib.Timer()
         self.auto_timer.start()
 
@@ -214,11 +203,33 @@ class MyRobot(wpilib.TimedRobot):
 
     def autonomousPeriodic(self):
         """Stop motors after 2 seconds."""
+        intake_speed = 0
+
         if self.auto_timer.get() >= 2.0:
             self.talon1.set(phoenix5.ControlMode.PercentOutput, 0)
             self.talon2.set(phoenix5.ControlMode.PercentOutput, 0)
             self.talon3.set(phoenix5.ControlMode.PercentOutput, 0)
             self.talon4.set(phoenix5.ControlMode.PercentOutput, 0)
+        
+        shooter_power = self.shooter_speed
+
+        # Start the 1 second delay
+        if not self.intake_delay_active:
+            self.intake_delay_active = True
+            self.intake_timer.reset()
+            self.intake_timer.start()
+                
+
+        # After 1 second, start intake
+        if self.intake_delay_active and self.intake_timer.hasElapsed(1):
+            intake_power = self.intake_speed
+
+        self.talon5.set(phoenix5.ControlMode.PercentOutput, intake_power)
+        self.talon6.set(phoenix5.ControlMode.PercentOutput, shooter_power)   
+        
+        def disabledInit():
+            self.talon5.set(phoenix5.ControlMode.PercentOutput, 0)
+            self.talon6.set(phoenix5.ControlMode.PercentOutput, 0)   
         
 if __name__ == "__main__":
     wpilib.run(MyRobot)
