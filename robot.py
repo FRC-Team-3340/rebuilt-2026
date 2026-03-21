@@ -23,6 +23,7 @@ class MyRobot(wpilib.TimedRobot):
         # Sparks, Climbers
         self.spark1 = rev.SparkMax(7, rev.SparkLowLevel.MotorType.kBrushless)
         self.spark2 = rev.SparkMax(8, rev.SparkLowLevel.MotorType.kBrushless)
+
         #Gets joystick 0 in driver station
         self.joystick = Joystick(0)
     
@@ -58,6 +59,8 @@ class MyRobot(wpilib.TimedRobot):
         rightyaxis = self.joystick.getRawAxis(5)
         # gets raw axis for the buttons
         a_button = self.joystick.getRawButton(1)
+        b_button = self.joystick.getRawButton(2)
+        x_button = self.joystick.getRawButton(3)
         leftbutton = self.joystick.getRawButton(5)
         rightbutton = self.joystick.getRawButton(6)
 
@@ -78,7 +81,7 @@ class MyRobot(wpilib.TimedRobot):
 
         # SHOOTER TRIGGER
         if righttrigger > 0.2:
-            shooter_power = 0.9
+            shooter_power = 0.8
 
             # Start the 1 second delay
             if not self.intake_delay_active:
@@ -102,8 +105,8 @@ class MyRobot(wpilib.TimedRobot):
         self.talon5.setInverted(True)
         
         if lefttrigger > 0.2:
-            intake_power =  -0.65
-            shooter_power = 0.65
+            intake_power =  -0.5
+            shooter_power = 0.5
         if lefttrigger < 0.2 and righttrigger < 0.2:
             intake_power =  0
             shooter_power = 0
@@ -117,16 +120,18 @@ class MyRobot(wpilib.TimedRobot):
         print(leftbutton, rightbutton)
         
         # CLIMBER
-        if leftbutton: 
+        if x_button: 
             # goes down
             self.spark1.set(0.5)
             self.spark2.set(-0.5)
-        elif rightbutton:
+        elif b_button:
             # goes up
             self.spark1.set(-0.5)
             self.spark2.set(0.5)
         else:
             # stops from climbing infinitely
+            self.spark1.IdleMode(rev.SparkBaseConfig.IdleMode.kBrake)
+            self.spark1.IdleMode(rev.SparkBaseConfig.IdleMode.kBrake)
             self.spark1.set(0)
             self.spark2.set(0)
 
@@ -137,10 +142,10 @@ class MyRobot(wpilib.TimedRobot):
         self.talon4.set(phoenix5.ControlMode.PercentOutput, -left_power)
 
     def autonomousInit(self):
-        self.auto.autoInit()
-
+        self.autonomousPeriodic
+      #  pass
     def autonomousPeriodic(self):
         self.auto.periodic()
-
+       # pass
 if __name__ == "__main__":
     wpilib.run(MyRobot)
