@@ -6,9 +6,9 @@ import rev
 class MyRobot(wpilib.TimedRobot):
     def robotInit(self):
 
-        self.GEAR_RATIO = 48.0
-        self.SPOOL_CIRCUMFERENCE = 2.6
-        self.TARGET_HEIGHT = 10.5
+        self.GEAR_RATIO = 48.0 # change
+        self.SPOOL_CIRCUMFERENCE = 2.6 # changed
+        self.TARGET_HEIGHT = 40#change to actual height
 
         # Drivetrain
         self.talon1 = phoenix5.WPI_TalonSRX(1)
@@ -112,7 +112,7 @@ class MyRobot(wpilib.TimedRobot):
             return x if abs(x) > d else 0
 
         def scale(x):
-            return x * 0.5
+            return x * 0.95
 
         left_power  = scale(db(leftyaxis))
         right_power = scale(db(rightyaxis))
