@@ -38,7 +38,14 @@
       "LiveWindow": {
         ".status": {
           "open": true
-        }
+        },
+        "open": true
+      },
+      "Shuffleboard": {
+        "open": true
+      },
+      "SmartDashboard": {
+        "open": true
       }
     }
   },

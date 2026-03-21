@@ -1,12 +1,16 @@
 import wpilib
 import phoenix5
-from wpilib import Joystick
+from wpilib import Joystick, SmartDashboard
 import rev
-
 from modules.components.autonomous import AprilTagAuto
 
 class MyRobot(wpilib.TimedRobot):
     def robotInit(self):
+
+        self.GEAR_RATIO = 48.0 # change
+        self.SPOOL_CIRCUMFERENCE = 2.6 # changed
+        self.TARGET_HEIGHT = 28.0 # change to actual height
+
         # Drivetrain
         #left side
         self.talon1 = phoenix5.WPI_TalonSRX(1)
@@ -30,41 +34,45 @@ class MyRobot(wpilib.TimedRobot):
         # Timer for delayed intake
         self.intake_timer = wpilib.Timer()
         self.intake_delay_active = False
+        
+        # 1. Create the configuration object
+        climber_config = rev.SparkMaxConfig()
 
-        # Climber settings
-        self.climber1_timer = wpilib.Timer()
-        self.climber2_timer = wpilib.Timer()
-        self.climb_time = 5 # seconds for climber to go down
-        self.climb1_difference = 0
-        self.climb2_difference = 0
+        # 2. Configure the Soft Limits
+        (climber_config.softLimit
+            .forwardSoftLimitEnabled(True)
+            .reverseSoftLimitEnabled(True)
+            .forwardSoftLimit(150.0) # Set to 150 rotations (or 8.0 if using inches)
+            .reverseSoftLimit(0.0))
+        
+        climber_config.encoder.positionConversionFactor(self.SPOOL_CIRCUMFERENCE / self.GEAR_RATIO) # Set the position conversion factor to convert rotations to inches 
 
+        # 3. Apply the configuration to both motors
+        # kResetSafeParameters ensures a clean state; kPersistParameters saves it to the flash
+        self.spark1.configure(climber_config, 
+                              rev.ResetMode.kResetSafeParameters, 
+                              rev.PersistMode.kPersistParameters)
+        
+        self.spark2.configure(climber_config, 
+                              rev.ResetMode.kResetSafeParameters, 
+                              rev.PersistMode.kPersistParameters)
+
+        # Math: (1 Rotation / Gear Ratio) * Circumference = Inches per motor rotation
+        self.position_factor = self.SPOOL_CIRCUMFERENCE / self.GEAR_RATIO
+
+        self.spark1.configure(climber_config, 
+                              rev.ResetMode.kResetSafeParameters, 
+                              rev.PersistMode.kPersistParameters)
+        
+        self.spark2.configure(climber_config, 
+                              rev.ResetMode.kResetSafeParameters, 
+                              rev.PersistMode.kPersistParameters)
+        
         self.climber1_encoder = self.spark1.getEncoder()
         self.climber2_encoder = self.spark2.getEncoder()
         
         self.climber1_encoder.setPosition(0)
         self.climber2_encoder.setPosition(0)
-        
-        self.spark1.enableSoftLimit(rev.SoftLimitDirection.kForward, True)
-        self.spark1.enableSoftLimit(rev.SoftLimitDirection.kReverse, True)
-        self.spark2.enableSoftLimit(rev.SoftLimitDirection.kForward, True)
-        self.spark2.enableSoftLimit(rev.SoftLimitDirection.kReverse, True)
-        
-        self.spark1.setSoftLimit(rev.SoftLimitDirection.kForward, 150.0) # changed to 20 --> for inches
-        self.spark1.setSoftLimit(rev.SoftLimitDirection.kReverse, 0)
-        self.spark2.setSoftLimit(rev.SoftLimitDirection.kForward, 150.0) # changed to 20 --> for inches
-        self.spark2.setSoftLimit(rev.SoftLimitDirection.kReverse, 0)
-
-
-        self.GEAR_RATIO = 48.0 # change
-        self.SPOOL_CIRCUMFERENCE = 2.6 # changed
-        self.TARGET_HEIGHT = 28.0 # change to actual height
-
-        # Math: (1 Rotation / Gear Ratio) * Circumference = Inches per motor rotation
-        self.position_factor = self.SPOOL_CIRCUMFERENCE / self.GEAR_RATIO
-
-        self.climber1_encoder.setPositionConversionFactor(self.position_factor)
-        self.climber2_encoder.setPositionConversionFactor(self.position_factor)
-
 
         # init auto
         self.auto = AprilTagAuto(
@@ -78,11 +86,20 @@ class MyRobot(wpilib.TimedRobot):
 
         self.TARGET_ROTATIONS = (self.TARGET_HEIGHT / self.SPOOL_CIRCUMFERENCE) * self.GEAR_RATIO
 
+        SmartDashboard.putNumber("Shooter Speed", 0.8)
+        SmartDashboard.putNumber("Intake Speed", 0.9)
+        SmartDashboard.putNumber("Reverse Intake Speed", 0.65)
+        SmartDashboard.putNumber("Reverse Intake Shooter Speed", -0.65)
+
         
     def motor_rotations_to_height(self, motor_rotations):
         return (motor_rotations / self.GEAR_RATIO) * self.SPOOL_CIRCUMFERENCE
     
     def teleopPeriodic(self):
+        intake_speed = SmartDashboard.getNumber("Intake Speed", 0.9)
+        shooter_speed = SmartDashboard.getNumber("Shooter Speed", 0.8)
+        reverse_intake_speed = SmartDashboard.getNumber("Reverse Intake Speed", 0.65)
+        reverse_intake_shooter_speed = SmartDashboard.getNumber("Reverse Intake Shooter Speed", -0.65)
 
         # gets raw axis for the joysticks and trigers
         leftxaxis = self.joystick.getRawAxis(0)
@@ -115,7 +132,7 @@ class MyRobot(wpilib.TimedRobot):
 
         # SHOOTER TRIGGER
         if righttrigger > 0.2:
-            shooter_power = 0.8
+            shooter_power = shooter_speed
 
             # Start the 1 second delay
             if not self.intake_delay_active:
@@ -126,7 +143,7 @@ class MyRobot(wpilib.TimedRobot):
 
         # After 1 second, start intake
         if self.intake_delay_active and self.intake_timer.hasElapsed(1):
-            intake_power = 0.9
+            intake_power = intake_speed
 
         # If shooter is released, stop
         if righttrigger <= 0.2:
@@ -139,8 +156,8 @@ class MyRobot(wpilib.TimedRobot):
         self.talon5.setInverted(True)
         
         if lefttrigger > 0.2:
-            intake_power =  -0.5
-            shooter_power = 0.5
+            intake_power =  reverse_intake_speed
+            shooter_power = reverse_intake_shooter_speed
         if lefttrigger < 0.2 and righttrigger < 0.2:
             intake_power =  0
             shooter_power = 0
