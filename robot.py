@@ -119,18 +119,18 @@ class MyRobot(wpilib.TimedRobot):
 
         # SHOOTER TRIGGER
         if righttrigger > 0.2:
-            shooter_power = shooter_speed
+            shooter_power = shooter_speed  # always on
 
-            # Start the 1 second delay
             if not self.intake_delay_active:
                 self.intake_delay_active = True
                 self.intake_timer.reset()
                 self.intake_timer.start()
-                
 
-        # After 1 second, start intake
-        if self.intake_delay_active and self.intake_timer.hasElapsed(1):
-            intake_power = intake_speed
+            elapsed = self.intake_timer.get() % 4.0  # 4 second cycle
+            if elapsed >= 2.0:                        # on for 2s, off for 2s
+                intake_power = intake_speed
+            else:
+                intake_power = 0
 
         # If shooter is released, stop
         if righttrigger <= 0.2:
