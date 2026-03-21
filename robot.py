@@ -121,7 +121,7 @@ class MyRobot(wpilib.TimedRobot):
 
         # After 1 second, start intake
         if self.intake_delay_active and self.intake_timer.hasElapsed(1):
-            intake_power = intake_speed
+            intake_power = self.intake_speed
 
         # If shooter is released, stop
         if righttrigger <= 0.2:
@@ -202,7 +202,7 @@ class MyRobot(wpilib.TimedRobot):
 
     def autonomousPeriodic(self):
         """Stop motors after 2 seconds."""
-        intake_speed = 0
+        intake_power = 0
 
         if self.auto_timer.get() >= 2.0:
             self.talon1.set(phoenix5.ControlMode.PercentOutput, 0)
@@ -210,21 +210,21 @@ class MyRobot(wpilib.TimedRobot):
             self.talon3.set(phoenix5.ControlMode.PercentOutput, 0)
             self.talon4.set(phoenix5.ControlMode.PercentOutput, 0)
         
-        shooter_power = self.shooter_speed
+            shooter_power = self.shooter_speed
 
-        # Start the 1 second delay
-        if not self.intake_delay_active:
-            self.intake_delay_active = True
-            self.intake_timer.reset()
-            self.intake_timer.start()
-                
+            # Start the 1 second delay
+            if not self.intake_delay_active:
+                self.intake_delay_active = True
+                self.intake_timer.reset()
+                self.intake_timer.start()
+                    
 
-        # After 1 second, start intake
-        if self.intake_delay_active and self.intake_timer.hasElapsed(1):
-            intake_power = self.intake_speed
+            # After 1 second, start intake
+            if self.intake_delay_active and self.intake_timer.hasElapsed(1):
+                intake_power = self.intake_speed
 
-        self.talon5.set(phoenix5.ControlMode.PercentOutput, intake_power)
-        self.talon6.set(phoenix5.ControlMode.PercentOutput, shooter_power)   
+            self.talon5.set(phoenix5.ControlMode.PercentOutput, intake_power)
+            self.talon6.set(phoenix5.ControlMode.PercentOutput, shooter_power)   
         
         def disabledInit():
             self.talon5.set(phoenix5.ControlMode.PercentOutput, 0)
