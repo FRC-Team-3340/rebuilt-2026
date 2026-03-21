@@ -49,15 +49,22 @@ class MyRobot(wpilib.TimedRobot):
         self.spark2.enableSoftLimit(rev.SoftLimitDirection.kForward, True)
         self.spark2.enableSoftLimit(rev.SoftLimitDirection.kReverse, True)
         
-        self.spark1.setSoftLimit(rev.SoftLimitDirection.kForward, 80)
+        self.spark1.setSoftLimit(rev.SoftLimitDirection.kForward, 150.0) # changed to 20 --> for inches
         self.spark1.setSoftLimit(rev.SoftLimitDirection.kReverse, 0)
-        self.spark2.setSoftLimit(rev.SoftLimitDirection.kForward, 80)
+        self.spark2.setSoftLimit(rev.SoftLimitDirection.kForward, 150.0) # changed to 20 --> for inches
         self.spark2.setSoftLimit(rev.SoftLimitDirection.kReverse, 0)
 
 
         self.GEAR_RATIO = 48.0 # change
-        self.SPOOL_CIRCUMFERENCE = 0.10 # change
-        self.TARGET_HEIGHT = 0 # change to actual height
+        self.SPOOL_CIRCUMFERENCE = 2.6 # changed
+        self.TARGET_HEIGHT = 28.0 # change to actual height
+
+        # Math: (1 Rotation / Gear Ratio) * Circumference = Inches per motor rotation
+        self.position_factor = self.SPOOL_CIRCUMFERENCE / self.GEAR_RATIO
+
+        self.climber1_encoder.setPositionConversionFactor(self.position_factor)
+        self.climber2_encoder.setPositionConversionFactor(self.position_factor)
+
 
         # init auto
         self.auto = AprilTagAuto(
@@ -68,12 +75,12 @@ class MyRobot(wpilib.TimedRobot):
             self.talon5,
             self.talon6
         )
+
+        self.TARGET_ROTATIONS = (self.TARGET_HEIGHT / self.SPOOL_CIRCUMFERENCE) * self.GEAR_RATIO
+
         
     def motor_rotations_to_height(self, motor_rotations):
         return (motor_rotations / self.GEAR_RATIO) * self.SPOOL_CIRCUMFERENCE
-        
-    def height_to_motor_rotations(self, height):
-        return (height / self.SPOOL_CIRCUMFERENCE) * self.GEAR_RATIO
     
     def teleopPeriodic(self):
 
@@ -146,30 +153,36 @@ class MyRobot(wpilib.TimedRobot):
         self.talon6.set(phoenix5.ControlMode.PercentOutput, shooter_power)
         print(leftbutton, rightbutton)
         
-        TARGET_ROTATIONS = height_to_motor_rotations(self.TARGET_HEIGHT)
         
         # CLIMBER
         if x_button:
             self.spark1.setIdleMode(rev.SparkMax.IdleMode.kCoast)
             self.spark2.setIdleMode(rev.SparkMax.IdleMode.kCoast)
             
-            if self.climber1_encoder.getPosition() >= TARGET_ROTATIONS: # do we need only one? One acting as the leader and the other following?
+            if self.climber1_encoder.getPosition() >= self.TARGET_ROTATIONS: # do we need only one? One acting as the leader and the other following?
                 self.spark1.set(0)
+            else:
+                self.spark1.set(-0.5)
+
+            if self.climber2_encoder.getPosition() >= self.TARGET_ROTATIONS: # do we need only one? One acting as the leader and the other following?
                 self.spark2.set(0)
             else:
-                self.spark1.set(0.5)
-                self.spark2.set(-0.5)
+                self.spark2.set(0.5)
         
         elif b_button:
             self.spark1.setIdleMode(rev.SparkMax.IdleMode.kCoast)
             self.spark2.setIdleMode(rev.SparkMax.IdleMode.kCoast)
             
-            if self.climber1_encoder.getPosition() >= TARGET_ROTATIONS: # do we need only one? One acting as the leader and the other following?
+            if self.climber1_encoder.getPosition() >= self.TARGET_ROTATIONS: # do we need only one? One acting as the leader and the other following?
                 self.spark1.set(0)
-                self.spark2.set(0)
             else:
                 self.spark1.set(-0.5)
+
+            if self.climber2_encoder.getPosition() >= self.TARGET_ROTATIONS: # do we need only one? One acting as the leader and the other following?
+                self.spark2.set(0)
+            else:
                 self.spark2.set(0.5)
+
         
         else:
             self.spark1.setIdleMode(rev.SparkMax.IdleMode.kBrake)
