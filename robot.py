@@ -55,6 +55,10 @@ class MyRobot(wpilib.TimedRobot):
         self.spark2.setSoftLimit(rev.SoftLimitDirection.kReverse, 0)
 
 
+        self.GEAR_RATIO = 48.0 # change
+        self.SPOOL_CIRCUMFERENCE = 0.10 # change
+        self.TARGET_HEIGHT = 0 # change to actual height
+
         # init auto
         self.auto = AprilTagAuto(
             self.talon1,
@@ -65,6 +69,12 @@ class MyRobot(wpilib.TimedRobot):
             self.talon6
         )
         
+    def motor_rotations_to_height(self, motor_rotations):
+        return (motor_rotations / self.GEAR_RATIO) * self.SPOOL_CIRCUMFERENCE
+        
+    def height_to_motor_rotations(self, height):
+        return (height / self.SPOOL_CIRCUMFERENCE) * self.GEAR_RATIO
+    
     def teleopPeriodic(self):
 
         # gets raw axis for the joysticks and trigers
@@ -136,18 +146,30 @@ class MyRobot(wpilib.TimedRobot):
         self.talon6.set(phoenix5.ControlMode.PercentOutput, shooter_power)
         print(leftbutton, rightbutton)
         
+        TARGET_ROTATIONS = height_to_motor_rotations(self.TARGET_HEIGHT)
+        
         # CLIMBER
         if x_button:
             self.spark1.setIdleMode(rev.SparkMax.IdleMode.kCoast)
             self.spark2.setIdleMode(rev.SparkMax.IdleMode.kCoast)
-            self.spark1.set(0.5)
-            self.spark2.set(-0.5)
+            
+            if self.climber1_encoder.getPosition() >= TARGET_ROTATIONS: # do we need only one? One acting as the leader and the other following?
+                self.spark1.set(0)
+                self.spark2.set(0)
+            else:
+                self.spark1.set(0.5)
+                self.spark2.set(-0.5)
         
         elif b_button:
             self.spark1.setIdleMode(rev.SparkMax.IdleMode.kCoast)
             self.spark2.setIdleMode(rev.SparkMax.IdleMode.kCoast)
-            self.spark1.set(-0.5)
-            self.spark2.set(0.5)
+            
+            if self.climber1_encoder.getPosition() >= TARGET_ROTATIONS: # do we need only one? One acting as the leader and the other following?
+                self.spark1.set(0)
+                self.spark2.set(0)
+            else:
+                self.spark1.set(-0.5)
+                self.spark2.set(0.5)
         
         else:
             self.spark1.setIdleMode(rev.SparkMax.IdleMode.kBrake)
