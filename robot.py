@@ -6,9 +6,9 @@ import rev
 class MyRobot(wpilib.TimedRobot):
     def robotInit(self):
 
-        self.GEAR_RATIO = 48.0 # change
-        self.SPOOL_CIRCUMFERENCE = 2.6 # changed
-        self.TARGET_HEIGHT = 40#change to actual height
+        self.GEAR_RATIO = 48.0
+        self.SPOOL_CIRCUMFERENCE = 2.6
+        self.TARGET_HEIGHT = 40
 
         # Drivetrain
         self.talon1 = phoenix5.WPI_TalonSRX(1)
@@ -56,14 +56,15 @@ class MyRobot(wpilib.TimedRobot):
     # Helper: rebuild and apply climber config with chosen idle mode.
     # Called once at init and again whenever the driver locks the climb.
     # ------------------------------------------------------------------
+    and 
     def _apply_climber_config(self, brake: bool):
-        idle_mode = (rev.SparkMaxConfig.IdleMode.kBrake
+        idle_mode = (rev.SparkBaseConfig.IdleMode.kBrake
                      if brake
-                     else rev.SparkMaxConfig.IdleMode.kCoast)
+                     else rev.SparkBaseConfig.IdleMode.kCoast)
 
         climber_config = rev.SparkMaxConfig()
 
-        climber_config.idleMode(idle_mode)
+        climber_config.IdleMode(idle_mode)
 
         (climber_config.softLimit
             .forwardSoftLimitEnabled(True)
@@ -78,13 +79,13 @@ class MyRobot(wpilib.TimedRobot):
         # kNoResetSafeParameters preserves encoder position across reconfigures
         self.spark1.configure(
             climber_config,
-            rev.SparkBase.ResetMode.kNoResetSafeParameters,
-            rev.SparkBase.PersistMode.kPersistParameters,
+            rev.ResetMode.kNoResetSafeParameters,
+            rev.PersistMode.kPersistParameters,
         )
         self.spark2.configure(
             climber_config,
-            rev.SparkBase.ResetMode.kNoResetSafeParameters,
-            rev.SparkBase.PersistMode.kPersistParameters,
+            rev.ResetMode.kNoResetSafeParameters,
+            rev.PersistMode.kPersistParameters,
         )
 
     def teleopInit(self):
