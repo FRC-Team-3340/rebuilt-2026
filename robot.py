@@ -9,7 +9,7 @@ class MyRobot(wpilib.TimedRobot):
 
         self.GEAR_RATIO = 48.0 # change
         self.SPOOL_CIRCUMFERENCE = 2.6 # changed
-        self.TARGET_HEIGHT = 28.0 # change to actual height
+        self.TARGET_HEIGHT = 11.0 # change to actual height
 
         # Drivetrain
         #left side
@@ -23,6 +23,9 @@ class MyRobot(wpilib.TimedRobot):
         # Intake + Shooter
         self.talon5 = phoenix5.WPI_TalonSRX(5)  # intake
         self.talon6 = phoenix5.WPI_TalonSRX(6)  # shooter
+
+        self.talon5.setInverted(True)
+
 
         # Sparks, Climbers
         self.spark1 = rev.SparkMax(7, rev.SparkLowLevel.MotorType.kBrushless)
@@ -42,20 +45,10 @@ class MyRobot(wpilib.TimedRobot):
         (climber_config.softLimit
             .forwardSoftLimitEnabled(True)
             .reverseSoftLimitEnabled(True)
-            .forwardSoftLimit(150.0) # Set to 150 rotations (or 8.0 if using inches)
+            .forwardSoftLimit(self.TARGET_HEIGHT) # Set to 150 rotations (or 8.0 if using inches)
             .reverseSoftLimit(0.0))
         
         climber_config.encoder.positionConversionFactor(self.SPOOL_CIRCUMFERENCE / self.GEAR_RATIO) # Set the position conversion factor to convert rotations to inches 
-
-        # 3. Apply the configuration to both motors
-        # kResetSafeParameters ensures a clean state; kPersistParameters saves it to the flash
-        self.spark1.configure(climber_config, 
-                              rev.ResetMode.kResetSafeParameters, 
-                              rev.PersistMode.kPersistParameters)
-        
-        self.spark2.configure(climber_config, 
-                              rev.ResetMode.kResetSafeParameters, 
-                              rev.PersistMode.kPersistParameters)
 
         # Math: (1 Rotation / Gear Ratio) * Circumference = Inches per motor rotation
         self.position_factor = self.SPOOL_CIRCUMFERENCE / self.GEAR_RATIO
@@ -84,16 +77,10 @@ class MyRobot(wpilib.TimedRobot):
             self.talon6
         )
 
-        self.TARGET_ROTATIONS = (self.TARGET_HEIGHT / self.SPOOL_CIRCUMFERENCE) * self.GEAR_RATIO
-
         SmartDashboard.putNumber("Shooter Speed", 0.8)
         SmartDashboard.putNumber("Intake Speed", 0.9)
         SmartDashboard.putNumber("Reverse Intake Speed", 0.65)
         SmartDashboard.putNumber("Reverse Intake Shooter Speed", -0.65)
-
-        
-    def motor_rotations_to_height(self, motor_rotations):
-        return (motor_rotations / self.GEAR_RATIO) * self.SPOOL_CIRCUMFERENCE
     
     def teleopPeriodic(self):
         intake_speed = SmartDashboard.getNumber("Intake Speed", 0.9)
@@ -153,7 +140,6 @@ class MyRobot(wpilib.TimedRobot):
             self.intake_timer.stop()
 
         # INTAKE + SHOOTER
-        self.talon5.setInverted(True)
         
         if lefttrigger > 0.2:
             intake_power =  reverse_intake_speed
@@ -176,12 +162,12 @@ class MyRobot(wpilib.TimedRobot):
             self.spark1.setIdleMode(rev.SparkMax.IdleMode.kCoast)
             self.spark2.setIdleMode(rev.SparkMax.IdleMode.kCoast)
             
-            if self.climber1_encoder.getPosition() >= self.TARGET_ROTATIONS: # do we need only one? One acting as the leader and the other following?
+            if self.climber1_encoder.getPosition() >= self.TARGET_HEIGHT: # do we need only one? One acting as the leader and the other following?
                 self.spark1.set(0)
             else:
                 self.spark1.set(-0.5)
 
-            if self.climber2_encoder.getPosition() >= self.TARGET_ROTATIONS: # do we need only one? One acting as the leader and the other following?
+            if self.climber2_encoder.getPosition() >= self.TARGET_HEIGHT: # do we need only one? One acting as the leader and the other following?
                 self.spark2.set(0)
             else:
                 self.spark2.set(0.5)
@@ -193,12 +179,12 @@ class MyRobot(wpilib.TimedRobot):
             if self.climber1_encoder.getPosition() >= self.TARGET_ROTATIONS: # do we need only one? One acting as the leader and the other following?
                 self.spark1.set(0)
             else:
-                self.spark1.set(-0.5)
+                self.spark1.set(0.5)
 
             if self.climber2_encoder.getPosition() >= self.TARGET_ROTATIONS: # do we need only one? One acting as the leader and the other following?
                 self.spark2.set(0)
             else:
-                self.spark2.set(0.5)
+                self.spark2.set(-0.5)
 
         
         else:
