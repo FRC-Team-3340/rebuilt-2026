@@ -198,10 +198,24 @@ class MyRobot(wpilib.TimedRobot):
         self.talon4.set(phoenix5.ControlMode.PercentOutput, -left_power)
 
     def autonomousInit(self):
-        self.autonomousPeriodic
-      #  pass
+        """Drives forward at 50% for 2 seconds."""
+        self.auto.init()
+        self.auto_timer = wpilib.Timer()
+        self.auto_timer.start()
+
+        # Start driving forward
+        self.talon1.set(phoenix5.ControlMode.PercentOutput, 0.5)
+        self.talon2.set(phoenix5.ControlMode.PercentOutput, 0.5)
+        self.talon3.set(phoenix5.ControlMode.PercentOutput, -0.5)
+        self.talon4.set(phoenix5.ControlMode.PercentOutput, -0.5)
+
     def autonomousPeriodic(self):
-        self.auto.periodic()
-       # pass
+        """Stop motors after 2 seconds."""
+        if self.auto_timer.get() >= 2.0:
+            self.talon1.set(phoenix5.ControlMode.PercentOutput, 0)
+            self.talon2.set(phoenix5.ControlMode.PercentOutput, 0)
+            self.talon3.set(phoenix5.ControlMode.PercentOutput, 0)
+            self.talon4.set(phoenix5.ControlMode.PercentOutput, 0)
+        
 if __name__ == "__main__":
     wpilib.run(MyRobot)
