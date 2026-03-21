@@ -8,7 +8,7 @@ class MyRobot(wpilib.TimedRobot):
 
         self.GEAR_RATIO = 48.0 # change
         self.SPOOL_CIRCUMFERENCE = 2.6 # changed
-        self.TARGET_HEIGHT = 11.0 # change to actual height
+        self.TARGET_HEIGHT = 10.5 # change to actual height
 
         # Drivetrain
         #left side
@@ -60,6 +60,7 @@ class MyRobot(wpilib.TimedRobot):
                               rev.ResetMode.kResetSafeParameters, 
                               rev.PersistMode.kPersistParameters)
         
+
         self.climber1_encoder = self.spark1.getEncoder()
         self.climber2_encoder = self.spark2.getEncoder()
         
@@ -70,8 +71,8 @@ class MyRobot(wpilib.TimedRobot):
 
         SmartDashboard.putNumber("Shooter Speed", 0.8)
         SmartDashboard.putNumber("Intake Speed", 0.9)
-        SmartDashboard.putNumber("Reverse Intake Speed", 0.65)
-        SmartDashboard.putNumber("Reverse Intake Shooter Speed", -0.65)
+        SmartDashboard.putNumber("Reverse Intake Speed", -0.65)
+        SmartDashboard.putNumber("Reverse Intake Shooter Speed", 0.65)
 
         self.intake_speed = SmartDashboard.getNumber("Intake Speed", 0.9)
         self.shooter_speed = SmartDashboard.getNumber("Shooter Speed", 0.8)
@@ -91,6 +92,7 @@ class MyRobot(wpilib.TimedRobot):
         a_button = self.joystick.getRawButton(1)
         b_button = self.joystick.getRawButton(2)
         x_button = self.joystick.getRawButton(3)
+        y_button = self.joystick.getRawButton(4)
         leftbutton = self.joystick.getRawButton(5)
         rightbutton = self.joystick.getRawButton(6)
 
@@ -139,7 +141,7 @@ class MyRobot(wpilib.TimedRobot):
             intake_power =  0
             shooter_power = 0
 
-        if a_button: # kicks the ball out of intake if it gets stuck
+        if b_button: # kicks the ball out of intake if it gets stuck
             intake_power =  0.65
             shooter_power = -0.65
 
@@ -147,33 +149,33 @@ class MyRobot(wpilib.TimedRobot):
         self.talon6.set(phoenix5.ControlMode.PercentOutput, shooter_power)        
         
         # CLIMBER
-        if x_button:
+        if y_button:
             self.spark1.IdleMode(rev.SparkMax.IdleMode.kCoast)
             self.spark2.IdleMode(rev.SparkMax.IdleMode.kCoast)
             
             if self.climber1_encoder.getPosition() >= self.TARGET_HEIGHT: # do we need only one? One acting as the leader and the other following?
                 self.spark1.set(0)
             else:
-                self.spark1.set(-0.5)
+                self.spark1.set(-0.5) #one climber goes up
 
             if self.climber2_encoder.getPosition() >= self.TARGET_HEIGHT: # do we need only one? One acting as the leader and the other following?
                 self.spark2.set(0)
             else:
-                self.spark2.set(0.5)
+                self.spark2.set(-0.5) #other climber goes up
         
-        elif b_button:
+        elif a_button:
             self.spark1.IdleMode(rev.SparkMax.IdleMode.kCoast)
-            self.spark2.idleMode(rev.SparkMax.IdleMode.kCoast)
+            self.spark2.IdleMode(rev.SparkMax.IdleMode.kCoast)
             
-            if self.climber1_encoder.getPosition() >= self.TARGET_ROTATIONS: # do we need only one? One acting as the leader and the other following?
+            if self.climber1_encoder.getPosition() >= self.TARGET_HEIGHT: # do we need only one? One acting as the leader and the other following?
                 self.spark1.set(0)
             else:
-                self.spark1.set(0.5)
+                self.spark1.set(0.5)#climber goes down
 
-            if self.climber2_encoder.getPosition() >= self.TARGET_ROTATIONS: # do we need only one? One acting as the leader and the other following?
+            if self.climber2_encoder.getPosition() >= self.TARGET_HEIGHT: # do we need only one? One acting as the leader and the other following?
                 self.spark2.set(0)
             else:
-                self.spark2.set(-0.5)
+                self.spark2.set(0.5)#climber goes down
 
         
         else:
@@ -195,16 +197,16 @@ class MyRobot(wpilib.TimedRobot):
         self.auto_timer.start()
 
         # Start driving forward
-        self.talon1.set(phoenix5.ControlMode.PercentOutput, 0.5)
-        self.talon2.set(phoenix5.ControlMode.PercentOutput, 0.5)
-        self.talon3.set(phoenix5.ControlMode.PercentOutput, -0.5)
-        self.talon4.set(phoenix5.ControlMode.PercentOutput, -0.5)
+        self.talon1.set(phoenix5.ControlMode.PercentOutput, -0.1)
+        self.talon2.set(phoenix5.ControlMode.PercentOutput, -0.1)
+        self.talon3.set(phoenix5.ControlMode.PercentOutput, 0.1)
+        self.talon4.set(phoenix5.ControlMode.PercentOutput, 0.1)
 
     def autonomousPeriodic(self):
-        """Stop motors after 2 seconds."""
+        """Stop motors after 1.5 seconds."""
         intake_power = 0
-
-        if self.auto_timer.get() >= 2.0:
+                                
+        if self.auto_timer.get() >= 0.0:
             self.talon1.set(phoenix5.ControlMode.PercentOutput, 0)
             self.talon2.set(phoenix5.ControlMode.PercentOutput, 0)
             self.talon3.set(phoenix5.ControlMode.PercentOutput, 0)
@@ -220,7 +222,7 @@ class MyRobot(wpilib.TimedRobot):
                     
 
             # After 1 second, start intake
-            if self.intake_delay_active and self.intake_timer.hasElapsed(1):
+            if self.intake_delay_active and self.intake_timer.hasElapsed(1) :
                 intake_power = self.intake_speed
 
             self.talon5.set(phoenix5.ControlMode.PercentOutput, intake_power)
