@@ -24,6 +24,16 @@ class MyRobot(wpilib.TimedRobot):
         # Sparks, Climbers
         self.spark1 = rev.SparkMax(7, rev.SparkLowLevel.MotorType.kBrushless)
         self.spark2 = rev.SparkMax(8, rev.SparkLowLevel.MotorType.kBrushless)
+    
+        # Setting the smart current limit in Amps
+        # A common recommendation is 40A-60A for a full-size NEO
+        self.spark1.setSmartCurrentLimit(60) 
+        self.spark2.setSmartCurrentLimit(60) 
+
+        self.spark1.burnFlash()
+        self.spark2.burnFlash()
+
+
 
         self.joystick = Joystick(0)
 
@@ -71,7 +81,7 @@ class MyRobot(wpilib.TimedRobot):
             .reverseSoftLimitEnabled(True)
             .forwardSoftLimit(self.TARGET_HEIGHT)
             .reverseSoftLimit(0.0))
-
+ 
         climber_config.encoder.positionConversionFactor(
             self.SPOOL_CIRCUMFERENCE / self.GEAR_RATIO
         )
