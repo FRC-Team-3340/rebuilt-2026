@@ -22,6 +22,19 @@ class MyRobot(wpilib.TimedRobot):
         self.talon6 = phoenix5.WPI_TalonSRX(6)
         self.talon5.setInverted(True)
 
+        # Sparks, Climbers
+        self.spark1 = rev.SparkMax(7, rev.SparkLowLevel.MotorType.kBrushless)
+        self.spark2 = rev.SparkMax(8, rev.SparkLowLevel.MotorType.kBrushless)
+    
+        # Setting the smart current limit in Amps
+        # A common recommendation is 40A-60A for a full-size NEO
+        self.spark1.setSmartCurrentLimit(60) 
+        self.spark2.setSmartCurrentLimit(60) 
+
+        self.spark1.burnFlash()
+        self.spark2.burnFlash()
+
+
         self.joystick = Joystick(0)
 
         # Timer for delayed intake
@@ -37,6 +50,41 @@ class MyRobot(wpilib.TimedRobot):
         self.shooter_speed = SmartDashboard.getNumber("Shooter Speed", 0.8)
         self.reverse_intake_speed = SmartDashboard.getNumber("Reverse Intake Speed", 0.65)
         self.reverse_intake_shooter_speed = SmartDashboard.getNumber("Reverse Intake Shooter Speed", -0.65)
+
+    # ------------------------------------------------------------------
+    # Helper: rebuild and apply climber config with chosen idle mode.
+    # Called once at init and again whenever the driver locks the climb.
+    # ------------------------------------------------------------------
+    def _apply_climber_config(self, brake: bool):
+        idle_mode = (rev.SparkBaseConfig.IdleMode.kBrake
+                     if brake
+                     else rev.SparkBaseConfig.IdleMode.kCoast)
+
+        climber_config = rev.SparkMaxConfig()
+
+        climber_config.IdleMode(idle_mode)
+
+        (climber_config.softLimit
+            .forwardSoftLimitEnabled(True)
+            .reverseSoftLimitEnabled(True)
+            .forwardSoftLimit(self.TARGET_HEIGHT)
+            .reverseSoftLimit(0.0))
+ 
+        climber_config.encoder.positionConversionFactor(
+            self.SPOOL_CIRCUMFERENCE / self.GEAR_RATIO
+        )
+
+        # kNoResetSafeParameters preserves encoder position across reconfigures
+        self.spark1.configure(
+            climber_config,
+            rev.ResetMode.kNoResetSafeParameters,
+            rev.PersistMode.kPersistParameters,
+        )
+        self.spark2.configure(
+            climber_config,
+            rev.ResetMode.kNoResetSafeParameters,
+            rev.PersistMode.kPersistParameters,
+        )
 
     def teleopInit(self):
         pass
