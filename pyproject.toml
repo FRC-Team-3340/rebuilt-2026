@@ -1,19 +1,20 @@
 [tool.robotpy]
 
-robotpy_version = "2026.2.1"
+robotpy_version = "2026.2.2"
 
 components = [
-    "phoenix5",
+    #"phoenix5",
     #"all",
     #"apriltag",
     #"commands2",
-    #"cscore",
+    "cscore",
     #"romi",
     #"sim",
     #"xrp",
-    "rev",
+    #"rev",
     #"robotpy-ctre",
     #"phoenix6"
+    "ntcore"
 ]
 
-requires = ["robotpy-ctre", "robotpy-rev", "limelightlib-python"]
+requires = ["robotpy-ctre", "robotpy-rev", "pynetworktables"]
