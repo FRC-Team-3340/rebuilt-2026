@@ -3,6 +3,7 @@ import phoenix5
 from wpilib import Joystick, SmartDashboard
 import rev
 
+
 class MyRobot(wpilib.TimedRobot):
     def robotInit(self):
 
@@ -15,10 +16,10 @@ class MyRobot(wpilib.TimedRobot):
         # Intake + Shooter
         self.talon5 = phoenix5.WPI_TalonSRX(5)   # intake
         self.talon6 = phoenix5.WPI_TalonSRX(6)   # shooter
-        self.talon5.setInverted(True)
+     #   self.talon5.setInverted(True)-
 
-        # NEW 3rd intake motor (SparkMax)
-        self.sparkmax1 = rev.CANSparkMax(7, rev.CANSparkMax.MotorType.kBrushless)
+        # NEW: 3rd intake motor (SparkMax)
+        self.intake_spark = rev.SparkMax(7, rev.SparkLowLevel.MotorType.kBrushless)
 
         self.joystick = Joystick(0)
 
@@ -32,6 +33,14 @@ class MyRobot(wpilib.TimedRobot):
         SmartDashboard.putNumber("Reverse Intake Speed", -0.65)
         SmartDashboard.putNumber("Reverse Intake Shooter Speed", 0.65)
 
+        self.intake_speed = SmartDashboard.getNumber("Intake Speed", 0.9)
+        self.shooter_speed = SmartDashboard.getNumber("Shooter Speed", 0.8)
+        self.reverse_intake_speed = SmartDashboard.getNumber("Reverse Intake Speed", 0.65)
+        self.reverse_intake_shooter_speed = SmartDashboard.getNumber("Reverse Intake Shooter Speed", -0.65)
+
+    def teleopInit(self):
+        pass
+
     def teleopPeriodic(self):
 
         leftyaxis    = self.joystick.getRawAxis(1)
@@ -39,10 +48,8 @@ class MyRobot(wpilib.TimedRobot):
         righttrigger = self.joystick.getRawAxis(3)
         rightyaxis   = self.joystick.getRawAxis(5)
 
-        a_button = self.joystick.getRawButton(1)
         b_button = self.joystick.getRawButton(2)
 
-        # Deadband + scaling
         def db(x, d=0.15):
             return x if abs(x) > d else 0
 
@@ -59,12 +66,12 @@ class MyRobot(wpilib.TimedRobot):
         rev_shooter   = SmartDashboard.getNumber("Reverse Intake Shooter Speed", 0.65)
 
         # ---------------------------------------------------------------
-        # Shooter + Intake Logic (clean + non-conflicting)
+        # Shooter + Intake
         # ---------------------------------------------------------------
         shooter_power = 0
         intake_power  = 0
 
-        # --- SHOOTING (right trigger) ---
+        # SHOOTING (right trigger)
         if righttrigger > 0.2:
             shooter_power = shooter_speed
 
@@ -73,33 +80,34 @@ class MyRobot(wpilib.TimedRobot):
                 self.intake_timer.reset()
                 self.intake_timer.start()
 
-            if self.intake_timer.hasElapsed(1):
-                intake_power = intake_speed
+        if self.intake_delay_active and self.intake_timer.hasElapsed(1):
+            intake_power = intake_speed
 
-        # --- REVERSE (left trigger) ---
-        elif lefttrigger > 0.2:
-            shooter_power = rev_shooter
-            intake_power  = rev_intake
-            self.intake_delay_active = False
-            self.intake_timer.stop()
-
-        # --- MANUAL REVERSE (B button) ---
-        elif b_button:
-            shooter_power = -0.65
-            intake_power  = 0.65
-            self.intake_delay_active = False
-            self.intake_timer.stop()
-
-        # --- NOTHING PRESSED ---
-        else:
+        # STOP shooting
+        if righttrigger <= 0.2:
             shooter_power = 0
             intake_power  = 0
             self.intake_delay_active = False
             self.intake_timer.stop()
 
+        # REVERSE (left trigger)
+        if lefttrigger > 0.2:
+            intake_power  = rev_intake
+            shooter_power = rev_shooter
+
+        # NOTHING pressed
+        if lefttrigger < 0.2 and righttrigger < 0.2:
+            intake_power  = 0
+            shooter_power = 0
+
+        # MANUAL reverse (B button)
+        if b_button:
+            intake_power  =  0.65
+            shooter_power = -0.65
+
         # Apply intake + shooter power
         self.talon5.set(phoenix5.ControlMode.PercentOutput, intake_power)
-        self.sparkmax1.set(intake_power)  # NEW 3rd intake motor
+        self.intake_spark.set(intake_power)  # 3rd intake motor
         self.talon6.set(phoenix5.ControlMode.PercentOutput, shooter_power)
 
         # ---------------------------------------------------------------
@@ -119,33 +127,37 @@ class MyRobot(wpilib.TimedRobot):
         self.intake_delay_active = False
 
     def autonomousPeriodic(self):
-        shooter_power = SmartDashboard.getNumber("Shooter Speed", 0.8)
-        intake_speed  = SmartDashboard.getNumber("Intake Speed", 0.9)
+        intake_power  = 0
+        shooter_power = 0
 
         # Stop drivetrain
-        for t in [self.talon1, self.talon2, self.talon3, self.talon4]:
-            t.set(phoenix5.ControlMode.PercentOutput, 0)
+        self.talon1.set(phoenix5.ControlMode.PercentOutput, 0)
+        self.talon2.set(phoenix5.ControlMode.PercentOutput, 0)
+        self.talon3.set(phoenix5.ControlMode.PercentOutput, 0)
+        self.talon4.set(phoenix5.ControlMode.PercentOutput, 0)
 
-        # Shooter always on
-        self.talon6.set(phoenix5.ControlMode.PercentOutput, shooter_power)
+        shooter_power = self.shooter_speed
 
-        # Intake after 1 second
         if not self.intake_delay_active:
             self.intake_delay_active = True
             self.intake_timer.reset()
             self.intake_timer.start()
 
         if self.intake_timer.hasElapsed(1):
-            self.talon5.set(phoenix5.ControlMode.PercentOutput, intake_speed)
-            self.sparkmax1.set(intake_speed)
-        else:
-            self.talon5.set(phoenix5.ControlMode.PercentOutput, 0)
-            self.sparkmax1.set(0)
+            intake_power = self.intake_speed
 
+        self.talon5.set(phoenix5.ControlMode.PercentOutput, intake_power)
+        self.intake_spark.set(intake_power)
+        self.talon6.set(phoenix5.ControlMode.PercentOutput, shooter_power)
+
+    # ---------------------------------------------------------------
+    # Disabled
+    # ---------------------------------------------------------------
     def disabledInit(self):
         self.talon5.set(phoenix5.ControlMode.PercentOutput, 0)
         self.talon6.set(phoenix5.ControlMode.PercentOutput, 0)
-        self.sparkmax1.set(0)
+        self.intake_spark.set(0)
+
 
 if __name__ == "__main__":
     wpilib.run(MyRobot)
