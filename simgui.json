@@ -34,6 +34,11 @@
     }
   },
   "NetworkTables": {
+    "retained": {
+      "SmartDashboard": {
+        "open": true
+      }
+    },
     "transitory": {
       "LiveWindow": {
         ".status": {
@@ -42,6 +47,9 @@
         "open": true
       },
       "Shuffleboard": {
+        ".metadata": {
+          "open": true
+        },
         "open": true
       },
       "SmartDashboard": {
@@ -57,6 +65,9 @@
       "open": true
     },
     "Server": {
+      "open": true
+    },
+    "pynetworktables 2021.0.0-NT3@127.0.0.1:62741": {
       "open": true
     },
     "visible": true
