@@ -56,7 +56,9 @@ class ShooterIntake:
     def intake(self):
         intake_speed = SmartDashboard.getNumber("Intake Speed", constants.INTAKE_SPEED)
         indexer_speed = SmartDashboard.getNumber("Indexer Speed", constants.INDEXER_SPEED)
+        shuffler_speed = SmartDashboard.getNumber("Shuffler Speed", constants.SHUFFLER_SPEED)
 
+        self._set_shuffler(shuffler_speed)
         self._set_intake(-intake_speed)
         self._set_indexer(-indexer_speed)
 

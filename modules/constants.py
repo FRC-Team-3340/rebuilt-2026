@@ -38,7 +38,7 @@ DRIVE_SCALE      = 0.95
 TRIGGER_DEADBAND = 0.2
 
 # Shooter / Intake speeds (also written to SmartDashboard)
-SHOOTER_SPEED                =  0.50
+SHOOTER_SPEED                =  0.80
 INTAKE_SPEED                 =  0.65
 REVERSE_INTAKE_SPEED         =  -0.65  # FIX: was -0.65, but reverse() already negates this value
 REVERSE_INTAKE_SHOOTER_SPEED =  0.65
