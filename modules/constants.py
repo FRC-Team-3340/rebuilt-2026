@@ -34,7 +34,7 @@ BTN_RIGHT_BUMPER = 6
 
 # Deadband / scaling
 DRIVE_DEADBAND   = 0.15
-DRIVE_SCALE      = 0.95
+DRIVE_SCALE      = 0.15
 TRIGGER_DEADBAND = 0.2
 
 # Shooter / Intake speeds (also written to SmartDashboard)

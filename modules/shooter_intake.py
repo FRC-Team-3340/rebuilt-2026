@@ -61,6 +61,7 @@ class ShooterIntake:
         self._set_shuffler(shuffler_speed)
         self._set_intake(-intake_speed)
         self._set_indexer(-indexer_speed)
+        self._set_shooter(0.35)
 
     # ---------------------------------------------------------
     # EJECT
@@ -98,7 +99,7 @@ class ShooterIntake:
     def _set_shooter(self, power: float):
         # FIX: use consistent ControlMode.PercentOutput for both TalonSRX motors
         self._shooter.set( phoenix5.ControlMode.PercentOutput, power)
-        self._shuffler.set(phoenix5.ControlMode.PercentOutput, power)
+        self._shuffler.set(phoenix5.ControlMode.PercentOutput, -power)
 
     def _set_intake(self, power: float):
         self._intake.set(power)
