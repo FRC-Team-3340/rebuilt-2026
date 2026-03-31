@@ -15,6 +15,8 @@ class MyRobot(wpilib.TimedRobot):
         camera = CameraServer.startAutomaticCapture()
         camera.setResolution(constants.CAMERA_WIDTH, constants.CAMERA_HEIGHT)
         camera.setFPS(constants.CAMERA_FPS)
+        self.auto_active = False
+
 
     def teleopPeriodic(self):
         left_trig = self.joystick.getRawAxis(constants.AXIS_LEFT_TRIG)
@@ -41,14 +43,27 @@ class MyRobot(wpilib.TimedRobot):
 
     def autonomousInit(self):
         self.shooter_intake.idle()
+        self.auto_timer  = wpilib.Timer()
 
     def autonomousPeriodic(self):
-        self.drivetrain.stop()
-        self.shooter_intake.shoot()
+       
+        if not self.auto_active:
+            self.auto_active = True
+            self.auto_timer.reset()
+            self.auto_timer.start()
+            
+        if self.auto_timer.get() <= 1 and self.auto_active:
+        # Shooter + shuffler always spin up immediately
+            self.drivetrain.tank_drive(-0.20, -0.20)
 
+        else:
+            self.drivetrain.stop()
+            self.shooter_intake.shoot()
+    
     def disabledInit(self):
         self.drivetrain.stop()
         self.shooter_intake.idle()
+        self.auto_active == False
 
 
 if __name__ == "__main__":
