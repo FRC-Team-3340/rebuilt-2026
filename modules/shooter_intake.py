@@ -31,10 +31,10 @@ class ShooterIntake:
     # SHOOT
     # ---------------------------------------------------------
     def shoot(self):
-        shooter_speed = SmartDashboard.getNumber("Shooter Speed",      constants.SHOOTER_SPEED)
-        intake_speed  = SmartDashboard.getNumber("Intake Speed",       constants.INTAKE_SPEED)
-        indexer_speed = SmartDashboard.getNumber("Indexer Speed",      constants.INDEXER_SPEED)
-
+        shooter_speed = SmartDashboard.getNumber("Shooter Speed", constants.SHOOTER_SPEED)
+        intake_speed  = SmartDashboard.getNumber("Intake Speed", constants.INTAKE_SPEED)
+        indexer_speed = SmartDashboard.getNumber("Indexer Speed", constants.INDEXER_SPEED)
+        shuffler_speed = SmartDashboard.getNumber("Shuffler Speed", constants.SHUFFLER_SPEED)
         # Start spinup timer on first call
         if not self._spinup_active:
             self._spinup_active = True
@@ -43,6 +43,7 @@ class ShooterIntake:
 
         # Shooter + shuffler always spin up immediately
         self._set_shooter(shooter_speed)
+        self._set_shuffler(shuffler_speed)
 
         # Feed balls only after the flywheel has reached speed
         if self._spinup_timer.hasElapsed(constants.SHOOTER_SPINUP_DELAY):
@@ -73,7 +74,7 @@ class ShooterIntake:
 
         self._set_intake(intake_speed)
         self._set_indexer(indexer_speed)
-        self._set_shuffler(-shuffler_speed)
+        self._set_shuffler(shuffler_speed)
 
 
     # ---------------------------------------------------------
@@ -97,9 +98,7 @@ class ShooterIntake:
             self._spinup_timer.reset()  # FIX: reset so next shoot() starts fresh
 
     def _set_shooter(self, power: float):
-        # FIX: use consistent ControlMode.PercentOutput for both TalonSRX motors
-        self._shooter.set( phoenix5.ControlMode.PercentOutput, power)
-        self._shuffler.set(phoenix5.ControlMode.PercentOutput, -power)
+        self._shooter.set(phoenix5.ControlMode.PercentOutput, power)
 
     def _set_intake(self, power: float):
         self._intake.set(power)

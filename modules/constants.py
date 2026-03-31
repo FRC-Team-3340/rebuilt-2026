@@ -50,6 +50,6 @@ SHUFFLER_SPEED               = 1
 SHOOTER_SPINUP_DELAY = 1.0   # seconds before intake/indexer engage after shooter starts
 
 # Camera
-CAMERA_WIDTH  = 320
-CAMERA_HEIGHT = 240
-CAMERA_FPS    = 30
+CAMERA_WIDTH  = 920
+CAMERA_HEIGHT = 480
+CAMERA_FPS    = 20
