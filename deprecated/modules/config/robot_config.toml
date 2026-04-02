@@ -1,7 +1,0 @@
-[limelight]
-pipeline = 0
-
-[drive]
-left = [ 3, 4 ]
-right = [ 1, 2 ]
-

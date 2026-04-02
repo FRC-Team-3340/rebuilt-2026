@@ -18,8 +18,6 @@ class ShooterIntake:
         # Dashboard tunables
         SmartDashboard.putNumber("Shooter Speed",        constants.SHOOTER_SPEED)
         SmartDashboard.putNumber("Intake Speed",         constants.INTAKE_SPEED)
-        SmartDashboard.putNumber("Reverse Intake Speed", constants.REVERSE_INTAKE_SPEED)
-        SmartDashboard.putNumber("Reverse Shooter Speed",constants.REVERSE_INTAKE_SHOOTER_SPEED)
         SmartDashboard.putNumber("Indexer Speed",        constants.INDEXER_SPEED)
         SmartDashboard.putNumber("Shuffler Speed",       constants.SHUFFLER_SPEED)
 
