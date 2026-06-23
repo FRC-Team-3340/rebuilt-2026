@@ -1,4 +1,5 @@
 import phoenix5
+from wpilib import SmartDashboard
 import modules.constants as constants
 
 def _deadband(value: float, threshold: float = constants.DRIVE_DEADBAND) -> float: 
@@ -20,11 +21,16 @@ class Drivetrain:
         self._left1.setInverted(True)
         self._left2.setInverted(True)
 
-    def tank_drive(self, left_raw: float, right_raw: float) -> None:
+    def tank_drive(self, left_raw: float, right_raw: float) -> float:
         left  = _scale(_deadband(left_raw))
         right = _scale(_deadband(right_raw))
+
+        
+
         self._set_left(left)
         self._set_right(right)
+
+        return left, right
 
     def stop(self) -> None:
         self._set_left(0)

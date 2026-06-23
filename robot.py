@@ -1,7 +1,8 @@
 import wpilib
-from wpilib import Joystick
+from wpilib import Joystick, SmartDashboard
 from cscore import CameraServer
-
+from wpilib import shuffleboard
+from wpilib.shuffleboard import Shuffleboard
 import modules.constants as constants
 from modules.drivetrain import Drivetrain
 from modules.shooter_intake import ShooterIntake
@@ -9,6 +10,9 @@ from modules.shooter_intake import ShooterIntake
 
 class MyRobot(wpilib.TimedRobot):
     def robotInit(self):
+        self.left_y = 0.0
+        self.right_y = 0.0
+
         self.drivetrain = Drivetrain()
         self.shooter_intake = ShooterIntake()
         self.joystick = Joystick(constants.JOYSTICK_PORT)
@@ -24,6 +28,20 @@ class MyRobot(wpilib.TimedRobot):
         self.last_left_dir = 0.0   # -1, 0, or 1
         self.last_right_dir = 0.0  # -1, 0, or 1
 
+        SmartDashboard.putNumber("Left Train", 0.0)
+        SmartDashboard.putNumber("Right Train", 0.0)
+        
+        SmartDashboard.putBoolean("Shooting", False)
+        SmartDashboard.putBoolean("Intaking", False)
+        SmartDashboard.putBoolean("Ejecting", False)
+        SmartDashboard.putBoolean("Precision Mode", False)
+    
+
+    def handle_status(self, shooting=False, intaking=False, ejecting=False):
+        SmartDashboard.putBoolean("Shooting", shooting)
+        SmartDashboard.putBoolean("Intaking", intaking)
+        SmartDashboard.putBoolean("Ejecting", ejecting)
+
 
     def teleopPeriodic(self):
         # Read joystick axes/buttons
@@ -37,9 +55,12 @@ class MyRobot(wpilib.TimedRobot):
         # --- PRECISION SCALING (RIGHT BUMPER) ---
         # When held, scale down drive power for aiming
         if right_bumper:
+            SmartDashboard.putBoolean("Precision Mode", True)
             scale = 0.4  # tweak if you want slower/faster aiming
             left_y *= scale
             right_y *= scale
+        else:
+            SmartDashboard.putBoolean("Precision Mode", False)
 
         # --- 10% DEADBAND FOR STICK DRIFT ---
         if abs(left_y) < 0.10:
@@ -67,16 +88,22 @@ class MyRobot(wpilib.TimedRobot):
                 right_y = -self.last_right_dir * self.BRAKE_FORCE
 
         # Drive with final values
+        SmartDashboard.putNumber("Left Train", left_y)
+        SmartDashboard.putNumber("Right Train", right_y)
         self.drivetrain.tank_drive(left_y, right_y)
 
         # --- SHOOTER / INTAKE LOGIC (UNCHANGED) ---
         if b_button:
             self.shooter_intake.eject()
+            self.handle_status(ejecting=True)
         elif left_trig > constants.TRIGGER_DEADBAND:
             self.shooter_intake.intake()
+            self.handle_status(intaking=True)
         elif right_trig > constants.TRIGGER_DEADBAND:
             self.shooter_intake.shoot()
+            self.handle_status(shooting=True)
         else:
+            self.handle_status()
             self.shooter_intake.idle()
 
 
